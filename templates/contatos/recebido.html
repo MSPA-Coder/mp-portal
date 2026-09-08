@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block titulo %}Solicitação recebida — MP Portal{% endblock %}
+
+{% block conteudo %}
+<section class="cartao cartao-estreito">
+  <h1>Solicitação recebida</h1>
+  <p>Obrigado pelo contato. Sua solicitação foi registrada e será respondida
+     pela equipe da MP Soluções.</p>
+  <p class="discreto">O tratamento dos dados enviados está descrito no
+     <a href="{% url 'privacidade' %}">aviso de privacidade</a>.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block titulo %}Aviso de privacidade — MP Soluções{% endblock %}
+
+{% block conteudo %}
+<article class="cartao documento">
+  <h1>Aviso de privacidade</h1>
+  <p class="discreto">Versão {{ versao }}, vigente desde {{ vigente_desde|date:"d/m/Y" }}.</p>
+
+  <h2>Quem trata os dados</h2>
+  <p>A MP Soluções é a controladora dos dados pessoais enviados pelo formulário
+     de contato do site, nos termos da Lei 13.709/2018 (LGPD).</p>
+
+  <h2>Para que</h2>
+  <p>{{ finalidade }}</p>
+
+  <h2>Com que base legal</h2>
+  <p>{{ base_legal }}</p>
+
+  <h2>O que é guardado, e por quê</h2>
+  <table class="tabela">
+    <thead>
+      <tr><th>Dado</th><th>Por que é guardado</th></tr>
+    </thead>
+    <tbody>
+      {% for rotulo, motivo in campos %}
+        <tr><td>{{ rotulo }}</td><td>{{ motivo }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Com quem é compartilhado</h2>
+  <p>{{ compartilhamento }}</p>
+
+  <h2>Por quanto tempo</h2>
+  <p>Os dados são apagados após {{ retencao_dias }} dias
+     (aproximadamente {{ retencao_meses }} meses) contados do envio.</p>
+  <p>{{ retencao_excecao }}</p>
+
+  <h2>Direitos do titular</h2>
+  <p>A qualquer momento, a pessoa a quem os dados se referem pode pedir:</p>
+  <ul>
+    {% for direito in direitos %}
+      <li>{{ direito }}</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Como exercer esses direitos</h2>
+  {% if canal %}
+    <p>Escreva para <strong>{{ canal }}</strong>. O pedido é atendido sem custo.</p>
+  {% else %}
+    <p class="alerta">Canal de atendimento ao titular ainda não configurado
+       nesta instalação. Em produção, a aplicação recusa subir sem ele.</p>
+  {% endif %}
+
+  <h2>Segurança</h2>
+  <p>Os dados ficam em servidor próprio, com acesso restrito a contas
+     autenticadas da MP Soluções. O endereço IP de quem envia não é guardado:
+     é registrado apenas um resumo criptográfico, usado para conter envio
+     automatizado em massa.</p>
+</article>
+{% endblock %}

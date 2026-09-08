@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block titulo %}Atendimento — MP Portal{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Solicitações de contato</h1>
+  <p class="discreto">{{ total }} registro(s){% if filtro %} na situação selecionada{% endif %}.</p>
+
+  <form method="get" action="{% url 'atendimento_lista' %}" class="filtro">
+    <label for="situacao">Situação</label>
+    <select name="situacao" id="situacao">
+      <option value="">Todas</option>
+      {% for valor, rotulo in situacoes %}
+        <option value="{{ valor }}"{% if valor == filtro %} selected{% endif %}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="botao">Filtrar</button>
+  </form>
+
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Protocolo</th><th>Recebido</th><th>Nome</th>
+        <th>Empresa</th><th>Segmento</th><th>Situação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for contato in pagina %}
+        <tr>
+          <td><a href="{% url 'atendimento_detalhe' contato.pk %}">{{ contato.protocolo }}</a></td>
+          <td>{{ contato.criado_em|date:"d/m/Y H:i" }}</td>
+          <td>{{ contato.nome }}</td>
+          <td>{{ contato.empresa|default:"—" }}</td>
+          <td>{{ contato.get_segmento_display|default:"—" }}</td>
+          <td>{{ contato.get_situacao_display }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="vazio">Nenhuma solicitação registrada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if pagina.has_other_pages %}
+    <nav class="paginacao">
+      {% if pagina.has_previous %}
+        <a href="?situacao={{ filtro }}&amp;pagina={{ pagina.previous_page_number }}">Anterior</a>
+      {% endif %}
+      <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+      {% if pagina.has_next %}
+        <a href="?situacao={{ filtro }}&amp;pagina={{ pagina.next_page_number }}">Próxima</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

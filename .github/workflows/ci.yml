@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  # Sem filtro de `branches`, de proposito: assim a verificacao roda em PR para
+  # QUALQUER base, e nao so para `main`.
+  #
+  # Com o filtro, um PR empilhado sobre outro branch nao disparava check
+  # nenhum -- e o sintoma e a ausencia de sinal, nao um vermelho: a pagina do PR
+  # fica limpa e parece aprovada.
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 3 * * 2"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Qualidade
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Criar CA efêmera para o build
+        run: |
+          mkdir -p .certs
+          openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 1 \
+            -keyout /tmp/local-root-ca.key \
+            -out .certs/local-root-ca.crt \
+            -subj "/CN=MpPortal CI Local CA"
+          rm -f /tmp/local-root-ca.key
+      - name: Criar segredos efêmeros de CI
+        # O `chmod 0644` na senha do PostgreSQL não é descuido, e o `umask 077`
+        # continua valendo para a chave do Django.
+        #
+        # Um segredo de arquivo do Compose é montado preservando dono e modo do
+        # host -- `uid`, `gid` e `mode` na sintaxe longa são ignorados fora do
+        # Swarm, e o próprio Compose avisa isso. O contêiner do PostgreSQL roda
+        # como `user: "postgres"` (uid 70) e precisa LER esse arquivo para
+        # inicializar; com 0600 pertencendo ao runner (uid 1001), ele morre no
+        # arranque com "Permission denied" e o serviço que depende dele nunca
+        # sobe. O valor aqui é uma constante pública deste arquivo e não protege
+        # nada.
+        run: |
+          umask 077
+          mkdir -p .secrets
+          printf '%s\n' 'ci-django-secret-key-not-for-production' > .secrets/django_secret_key
+          printf '%s\n' 'ci-postgres-password-not-for-production' > .secrets/postgres_password
+          chmod 0644 .secrets/postgres_password
+      - name: Validar Compose
+        run: docker compose config --quiet
+      - name: Construir quality sem cache
+        run: docker compose --profile quality build --no-cache quality
+      - name: Executar quality
+        run: docker compose --profile quality run --rm quality
+
+      # O Dependabot cobre atualizacoes; o pip-audit responde separadamente se a
+      # versao instalada tem uma vulnerabilidade conhecida. Roda dentro da
+      # propria imagem `quality`, que instala exatamente o que a imagem servida
+      # instala, mais as ferramentas de teste -- auditar o ambiente instalado
+      # responde a pergunta certa; auditar o arquivo de requisitos responderia
+      # sobre o que esta ESCRITO, nao sobre o que esta rodando.
+      #
+      # Reprova em qualquer achado, de proposito. Vulnerabilidade sem correcao
+      # publicada sai por `--ignore-vuln ID` com um comentario dizendo por que:
+      # cada excecao vira uma decisao explicita e datada, em vez de um vermelho
+      # permanente que se aprende a ignorar.
+      - name: Auditar dependencias instaladas (CVE conhecido)
+        run: docker compose --profile quality run --rm quality pip-audit --progress-spinner=off --cache-dir /tmp/pip-audit-cache
+      - name: Construir runtime imutavel
+        run: docker compose -f compose.yaml build --no-cache web
+
+      # O `pip-audit` acima cobre as dependencias Python. Esta varredura cobre o
+      # que ele nao ve: os pacotes do sistema operacional da imagem base.
+      #
+      # RODA COMO CONTEINER, NAO COMO ACTION. A politica de Actions desta conta
+      # e `selected` com apenas `github_owned_allowed` -- action de terceiro e
+      # barrada antes de o workflow rodar, e o sintoma e `startup_failure` sem
+      # log. Conformar-se a politica e melhor que afrouxa-la para caber uma
+      # ferramenta.
+      #
+      # `docker save` + `--input` em vez de montar /var/run/docker.sock: montar
+      # o socket do Docker e dar root na pratica.
+      #
+      # `--ignore-unfixed` de proposito: CVE de pacote de sistema sem correcao
+      # publicada nao e acionavel.
+      - name: Varredura de vulnerabilidade da imagem servida
+        run: |
+          set -euo pipefail
+          docker save mp-portal:local -o "$RUNNER_TEMP/imagem.tar"
+          docker run --rm \
+            -v "$RUNNER_TEMP:/varredura:ro" \
+            aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+            image --input /varredura/imagem.tar \
+                  --scanners vuln \
+                  --severity HIGH,CRITICAL \
+                  --ignore-unfixed \
+                  --exit-code 1 \
+                  --format table
+      - name: Verificar fronteira do runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          # `docker compose images -q` lista somente conteineres ja criados;
+          # apos `build` ele pode devolver um ID antigo ou inexistente. A
+          # configuracao e a fonte do nome da imagem que acabou de ser criada.
+          runtime_image="$(docker compose config --images | grep -x 'mp-portal:local' | head -1)"
+          test -n "$runtime_image"
+
+          docker run --rm --entrypoint sh "$runtime_image" -ec '
+            require_read_only() {
+              if test -w "$1"; then
+                echo "Caminho de codigo gravavel no runtime: $1" >&2
+                exit 1
+              fi
+            }
+            require_writable() {
+              if ! test -w "$1"; then
+                echo "Diretorio de estado nao gravavel no runtime: $1" >&2
+                exit 1
+              fi
+            }
+            require_absent() {
+              if command -v "$1" >/dev/null; then
+                echo "Ferramenta proibida no runtime: $1" >&2
+                exit 1
+              fi
+            }
+
+            require_read_only /workspace
+            require_read_only /workspace/portal
+            require_read_only /workspace/contatos
+            require_writable /workspace/logs
+            require_writable /workspace/staticfiles
+            require_absent ruff
+            require_absent pytest
+            require_absent pip-audit
+            require_absent curl
+            require_absent pg_dump
+            require_absent gcc
+            require_absent git
+          '
+
+          runtime_container="$(docker create "$runtime_image")"
+          trap 'docker rm -f "$runtime_container" >/dev/null' EXIT
+          if docker export "$runtime_container" | tar -t | grep -E '(^|/)workspace/(\.secrets(/|$)|\.env(\..*)?$|.*\.(key|pem|crt)$)'; then
+            echo "Arquivo local, segredo ou dependencia de desenvolvimento encontrado no runtime." >&2
+            exit 1
+          fi
+
+      # A suite ja reprova migracao pendente (`tests/test_migracoes_e_restricoes.py`).
+      # Este passo cobre o outro lado: que a cadeia de migracoes aplica num banco
+      # vazio pela imagem SERVIDA, que e a que o `deploy.sh` executa -- e nao
+      # pela imagem `quality`.
+      - name: Aplicar migracoes com a imagem servida
+        run: |
+          set -euo pipefail
+          docker compose up -d postgres
+          docker compose run --rm migrate
+          docker compose down -v

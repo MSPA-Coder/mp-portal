@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ contato.protocolo }} — MP Portal{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <p class="discreto"><a href="{% url 'atendimento_lista' %}">← Voltar às solicitações</a></p>
+  <h1>{{ contato.protocolo }}</h1>
+  <p class="discreto">Recebido em {{ contato.criado_em|date:"d/m/Y \à\s H:i" }}.</p>
+
+  <dl class="ficha">
+    <dt>Nome</dt><dd>{{ contato.nome }}</dd>
+    <dt>Empresa ou condomínio</dt><dd>{{ contato.empresa|default:"—" }}</dd>
+    <dt>E-mail</dt><dd>{{ contato.email }}</dd>
+    <dt>Telefone</dt><dd>{{ contato.telefone }}</dd>
+    <dt>Segmento</dt><dd>{{ contato.get_segmento_display|default:"—" }}</dd>
+    <dt>Soluções de interesse</dt>
+    <dd>
+      {% for rotulo in contato.solucoes_rotuladas %}{{ rotulo }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+    </dd>
+    <dt>Mensagem</dt><dd class="mensagem">{{ contato.mensagem|default:"—"|linebreaksbr }}</dd>
+    <dt>Situação</dt><dd>{{ contato.get_situacao_display }}</dd>
+  </dl>
+
+  <h2>Consentimento</h2>
+  <p class="discreto">
+    Concordou com a versão {{ contato.aviso_versao }} do
+    <a href="{% url 'privacidade' %}">aviso de privacidade</a> em
+    {{ contato.consentimento_em|date:"d/m/Y \à\s H:i" }}.
+    Origem do envio: {{ contato.origem|default:"—" }}.
+  </p>
+
+  <h2>Triagem</h2>
+  <form method="post" action="{% url 'atendimento_situacao' contato.pk %}" class="filtro">
+    {% csrf_token %}
+    <label for="situacao">Nova situação</label>
+    <select name="situacao" id="situacao">
+      {% for valor, rotulo in situacoes %}
+        <option value="{{ valor }}"{% if valor == contato.situacao %} selected{% endif %}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="botao">Salvar</button>
+  </form>
+
+  <h2>Direito de eliminação</h2>
+  <p class="discreto">A pedido do titular (LGPD, art. 18, VI), o registro pode
+     ser apagado. A exclusão é definitiva: sobra apenas o protocolo no log, que
+     não identifica ninguém.</p>
+  <form method="post" action="{% url 'atendimento_excluir' contato.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="botao botao-perigo">Excluir definitivamente</button>
+  </form>
+</section>
+{% endblock %}

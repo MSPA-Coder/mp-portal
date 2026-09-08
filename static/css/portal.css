@@ -1,0 +1,170 @@
+/* Estilo do portal.
+ *
+ * A paleta e a mesma do site institucional (`site/assets/css/site.css` do
+ * repositorio MpSolucoes) para que as duas coisas pareçam da mesma empresa.
+ * As FONTES nao sao: o site vendoriza Archivo e IBM Plex, e o portal usa a
+ * pilha do sistema. Copiar arquivos de fonte para ca custaria KB em toda
+ * pagina de uma area interna que quase ninguem abre.
+ *
+ * Sem `@import`, sem CDN, sem `url()` remoto: a CSP e `default-src 'self'`.
+ */
+
+:root {
+  --bg: #070d18;
+  --bg2: #0b1526;
+  --panel: #0e1b30;
+  --line: rgba(146, 170, 205, 0.16);
+  --line2: rgba(146, 170, 205, 0.3);
+  --ink: #edf2f9;
+  --mut: #93a3bb;
+  --acc: #31e3a2;
+  --acc-deep: #0c9b70;
+  --amb: #ffb224;
+  --perigo: #ff6b6b;
+  --pilha: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--pilha);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+a { color: var(--acc); }
+a:hover { color: var(--acc-deep); }
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--line);
+}
+
+.marca {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  color: var(--ink);
+}
+.marca span { color: var(--acc); }
+
+.topo-acoes { display: flex; align-items: center; gap: 16px; }
+.topo-acoes form { margin: 0; }
+
+.conteudo { max-width: 1040px; margin: 0 auto; padding: 24px 20px 48px; }
+
+.cartao {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+}
+.cartao-estreito { max-width: 460px; margin: 40px auto; }
+
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+h2 { font-size: 1.05rem; margin: 24px 0 6px; color: var(--acc); }
+
+.discreto { color: var(--mut); font-size: 0.9rem; }
+.vazio { color: var(--mut); text-align: center; padding: 24px 0; }
+
+.campo { margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
+label { color: var(--mut); font-size: 0.85rem; }
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+select,
+textarea {
+  width: 100%;
+  padding: 9px 10px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  font: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--acc); }
+
+.botao {
+  padding: 9px 16px;
+  background: var(--acc);
+  color: #06231a;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.botao:hover { background: var(--acc-deep); color: var(--ink); }
+.botao-perigo { background: var(--perigo); color: #2b0808; }
+.botao-texto {
+  background: none;
+  border: 0;
+  color: var(--acc);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.alerta {
+  border-left: 3px solid var(--amb);
+  background: rgba(255, 178, 36, 0.08);
+  padding: 10px 12px;
+  border-radius: 4px;
+}
+.alerta-lista { color: var(--amb); }
+
+.filtro { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.filtro select { width: auto; min-width: 200px; }
+
+/* Tabela larga rola dentro do proprio quadro; o corpo da pagina nunca rola na
+   horizontal. */
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  display: block;
+  overflow-x: auto;
+}
+.tabela th, .tabela td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.tabela th { color: var(--mut); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.ficha { display: grid; grid-template-columns: 220px 1fr; gap: 6px 16px; margin: 16px 0; }
+.ficha dt { color: var(--mut); font-size: 0.85rem; }
+.ficha dd { margin: 0; }
+.mensagem { white-space: pre-wrap; }
+
+.paginacao { display: flex; align-items: center; gap: 16px; margin-top: 16px; color: var(--mut); }
+
+.documento { max-width: 760px; margin: 0 auto; }
+.documento p, .documento li { max-width: 68ch; }
+
+.rodape {
+  border-top: 1px solid var(--line);
+  padding: 16px 20px;
+  color: var(--mut);
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.rodape p { margin: 0; }
+
+@media (max-width: 640px) {
+  .ficha { grid-template-columns: 1fr; }
+  .ficha dd { margin-bottom: 8px; }
+}

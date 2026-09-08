@@ -1,0 +1,237 @@
+name: mp-portal
+
+x-app-build: &app-build
+  # Nome fixo em vez do derivado do diretorio. Sem isto o Compose batiza a
+  # imagem a partir do nome da pasta, que muda conforme onde o repositorio foi
+  # clonado -- no CI seria um nome, no VPS outro. A varredura de
+  # vulnerabilidade precisa apontar para uma imagem por NOME, e nome que
+  # depende do caminho do checkout nao serve de alvo.
+  image: mp-portal:local
+  build:
+    context: .
+    target: runtime
+    secrets:
+      - local_ca
+
+x-app-environment: &app-environment
+  DJANGO_SETTINGS_MODULE: portal.settings
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: ${POSTGRES_USER:-mp_portal}
+  POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+  POSTGRES_DB: ${POSTGRES_DB:-mp_portal}
+  DJANGO_SECRET_KEY_FILE: /run/secrets/django_secret_key
+  REQUIRE_FILE_SECRETS: "true"
+  TZ: America/Sao_Paulo
+  PYTHONUNBUFFERED: "1"
+
+x-app-secrets: &app-secrets
+  secrets:
+    - django_secret_key
+    - postgres_password
+
+x-service-logging: &service-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Servicos de aplicacao nao precisam escrever na camada da imagem. Os unicos
+# caminhos persistentes e gravaveis sao volumes declarados pelo servico.
+x-app-hardening: &app-hardening
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:mode=1777,rw,noexec,nosuid,size=64m
+
+# PostgreSQL grava somente no volume de dados. O entrypoint oficial tambem
+# funciona como o usuario da imagem quando PGDATA ja lhe pertence; assim nao
+# precisa conservar capabilities no processo do banco.
+x-postgres-hardening: &postgres-hardening
+  user: "postgres"
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:mode=1777,rw,noexec,nosuid,size=64m
+    - /var/run/postgresql:mode=1777,rw,noexec,nosuid,size=16m
+  pids_limit: 256
+
+services:
+  postgres:
+    <<: *postgres-hardening
+    image: postgres:17-alpine
+    restart: unless-stopped
+    cpus: 1.0
+    mem_limit: 512m
+    stop_grace_period: 60s
+    logging: *service-logging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mp_portal}
+      POSTGRES_USER: ${POSTGRES_USER:-mp_portal}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      TZ: America/Sao_Paulo
+    secrets:
+      - postgres_password
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5602}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mp_portal} -d ${POSTGRES_DB:-mp_portal}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Etapa controlada de inicializacao: aplica migrations e materializa os assets
+  # com hash no volume que o `web` consome. O `web` so sobe depois que esta
+  # etapa termina com sucesso.
+  migrate:
+    <<: [*app-build, *app-hardening, *app-secrets]
+    cpus: 1.0
+    mem_limit: 512m
+    environment:
+      <<: *app-environment
+    pids_limit: 128
+    stop_grace_period: 30s
+    logging: *service-logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # `--clear` e necessario: sem ele, um asset removido do codigo continua
+    # sendo servido a partir do volume indefinidamente.
+    command:
+      - sh
+      - -c
+      - "python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear"
+    restart: "no"
+    volumes:
+      - app_logs:/workspace/logs
+      - static_volume:/workspace/staticfiles
+
+  web:
+    <<: [*app-build, *app-hardening, *app-secrets]
+    restart: unless-stopped
+    cpus: 2.0
+    mem_limit: 512m
+    init: true
+    pids_limit: 256
+    stop_grace_period: 45s
+    logging: *service-logging
+    environment:
+      <<: *app-environment
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+      DEBUG: ${DEBUG:-False}
+      USE_HTTPS: ${USE_HTTPS:-False}
+      # Quem pode enviar `POST /contato`. Vazio recusa tudo fora do modo de
+      # depuracao, de proposito -- ver `contatos/origens.py`.
+      CONTATO_ORIGENS_PERMITIDAS: ${CONTATO_ORIGENS_PERMITIDAS:-}
+      CONTATO_PROXIES_CONFIAVEIS: ${CONTATO_PROXIES_CONFIAVEIS:-}
+      CONTATO_CANAL_TITULAR: ${CONTATO_CANAL_TITULAR:-}
+      CONTATO_RETENCAO_DIAS: ${CONTATO_RETENCAO_DIAS:-730}
+    ports:
+      - "127.0.0.1:${APP_PORT:-5601}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--threads", "4", "--worker-class", "gthread", "--timeout", "60", "--no-control-socket", "portal.wsgi:application"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; request = urllib.request.Request('http://127.0.0.1:8000/health', headers={'X-Forwarded-Proto': 'https'}); urllib.request.urlopen(request, timeout=3)"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+      start_interval: 1s
+    volumes:
+      - app_logs:/workspace/logs
+      - static_volume:/workspace/staticfiles
+
+  # Ruff e a suite. Fica atras de um perfil para nao subir junto com a
+  # aplicacao:
+  #   docker compose --profile quality run --build --rm quality
+  # O `--build` e necessario: este servico nao monta o codigo do host, e
+  # `docker compose run` reutiliza a imagem existente sem reconstrui-la -- foi
+  # assim que uma suite ja passou em verde sobre o codigo anterior.
+  #
+  # Banco EFEMERO da suite. Nao e o `postgres` de cima, e isso e deliberado: a
+  # suite nao pode ter caminho ate o volume com dados reais, nem por engano. O
+  # runner do Django cria e destroi `test_mp_portal` sozinho, mas faz isso NO
+  # SERVIDOR que a configuracao apontar -- e um DROP DATABASE sempre executa
+  # onde mandaram, nao onde era seguro.
+  postgres-teste:
+    <<: *postgres-hardening
+    image: postgres:17-alpine
+    profiles: ["quality"]
+    cpus: 1.0
+    mem_limit: 512m
+    logging: *service-logging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mp_portal}
+      POSTGRES_USER: ${POSTGRES_USER:-mp_portal}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      TZ: America/Sao_Paulo
+    # O arquivo precisa ser LEGIVEL PELO UID 70 (o `postgres` da imagem). Um
+    # segredo de arquivo e montado preservando dono e modo do host, e `uid`,
+    # `gid` e `mode` na sintaxe longa sao ignorados fora do Swarm -- o Compose
+    # ate avisa. Com `.secrets/postgres_password` em 0600 de outro dono, este
+    # conteiner morre no arranque com "Permission denied" e o `quality` reporta
+    # apenas "dependency failed to start". No Docker Desktop do Windows o
+    # problema nao aparece, porque la todo arquivo montado chega como 0777.
+    secrets:
+      - postgres_password
+    # Sem `ports`: ninguem de fora precisa alcanca-lo.
+    #
+    # Este `tmpfs` SUBSTITUI o do anchor `postgres-hardening` -- o merge do YAML
+    # troca a chave inteira, nao acrescenta itens. Por isso os dois caminhos do
+    # anchor estao repetidos aqui. `uid=70,gid=70,mode=0700` porque um tmpfs
+    # nasce pertencendo ao root, e o `initdb` roda como `postgres` com
+    # `cap_drop: ALL` -- sem CAP_CHOWN e CAP_FOWNER ele nao consegue tomar posse
+    # do diretorio, e o conteiner morre em "could not change permissions".
+    tmpfs:
+      - /tmp:mode=1777,rw,noexec,nosuid,size=64m
+      - /var/run/postgresql:mode=1777,rw,noexec,nosuid,size=16m
+      - /var/lib/postgresql/data:mode=0700,uid=70,gid=70,rw,size=512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mp_portal} -d ${POSTGRES_DB:-mp_portal}"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  quality:
+    <<: *app-secrets
+    build:
+      context: .
+      target: quality
+      secrets:
+        - local_ca
+    environment:
+      <<: *app-environment
+      # Sobrescreve o `postgres` da ancora. A suite fala com o banco efemero.
+      POSTGRES_HOST: postgres-teste
+    depends_on:
+      postgres-teste:
+        condition: service_healthy
+    profiles: ["quality"]
+    stop_grace_period: 15s
+    logging: *service-logging
+
+volumes:
+  postgres_data:
+  app_logs:
+  static_volume:
+
+secrets:
+  local_ca:
+    file: .certs/local-root-ca.crt
+  django_secret_key:
+    file: ${COMPOSE_SECRETS_DIRECTORY:-.secrets}/django_secret_key
+  postgres_password:
+    file: ${COMPOSE_SECRETS_DIRECTORY:-.secrets}/postgres_password
