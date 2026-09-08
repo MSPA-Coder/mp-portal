@@ -26,6 +26,41 @@ def test_toda_resposta_carrega_a_politica_e_os_defensivos(client):
             assert resposta[cabecalho] == valor, f"{caminho}: {cabecalho}"
 
 
+def test_nenhuma_pagina_vaza_sintaxe_de_template(client, atendente):
+    """Comentario `{# #}` escrito em varias linhas NAO e comentario.
+
+    A forma com cerquilha so vale numa linha; em duas, o texto sai no HTML. Foi
+    o que aconteceu no `base.html`, dentro do `<head>`, e nenhuma asercao de
+    conteudo percebeu -- todas procuravam o que DEVIA estar la. Esta procura o
+    que NAO devia.
+    """
+    from django.utils import timezone
+
+    from contatos.models import Contato
+    from contatos.privacidade import AVISO_VERSAO
+
+    contato = Contato.objects.create(
+        nome="Fulano",
+        email="fulano@exemplo.com.br",
+        telefone="11999998888",
+        consentimento=True,
+        consentimento_em=timezone.now(),
+        aviso_versao=AVISO_VERSAO,
+    )
+
+    caminhos = ["/login", "/privacidade", "/contato/recebido"]
+    for caminho in caminhos:
+        corpo = client.get(caminho).content.decode("utf-8")
+        for marca in ("{#", "{%", "{{"):
+            assert marca not in corpo, f"{caminho} vazou {marca}"
+
+    client.force_login(atendente)
+    for caminho in ("/atendimento/", f"/atendimento/{contato.pk}/"):
+        corpo = client.get(caminho).content.decode("utf-8")
+        for marca in ("{#", "{%", "{{"):
+            assert marca not in corpo, f"{caminho} vazou {marca}"
+
+
 def test_settings_do_django_nao_discordam_da_biblioteca():
     """Dois lugares emitem os mesmos cabecalhos; divergir e defeito silencioso."""
     assert SECURITY_HEADERS["X-Frame-Options"] == settings.X_FRAME_OPTIONS

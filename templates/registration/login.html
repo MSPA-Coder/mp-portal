@@ -7,8 +7,10 @@
   <h1>Entrar</h1>
 
   {% if form.errors %}
-    {# Mensagem única e genérica: dizer "usuário não existe" entrega ao
-       visitante a lista de quem tem conta. #}
+    {% comment %}
+      Mensagem única e genérica: dizer "usuário não existe" entrega ao
+      visitante a lista de quem tem conta.
+    {% endcomment %}
     <p class="alerta">Usuário ou senha inválidos.</p>
   {% endif %}
 
