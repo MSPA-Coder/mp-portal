@@ -1,0 +1,86 @@
+{% extends "site/base.html" %}
+{% load static %}
+
+{% block conteudo %}
+<div id="routeTag">MP // PARCEIROS & CLIENTES</div>
+
+<main>
+<div class="page active" id="page-parceiros">
+  <section class="screen noise">
+    <div class="wrap">
+      <div class="rv">
+        <span class="sec-label" data-scramble data-text="// PARCEIROS & CLIENTES">// PARCEIROS &amp; CLIENTES</span>
+        <h1 class="mid">Uma rede que sustenta cada entrega.</h1>
+        <p class="sub">Marcas líderes integradas em um único ecossistema tecnológico — e instituições que confiam na nossa operação todos os dias.</p>
+      </div>
+
+      <div class="pg-tabs rv" role="tablist" aria-label="Parceiros e clientes">
+        <button class="pg-tab active" data-ptab="parc" role="tab" aria-selected="true"><span class="tb-n">01</span> Parceiros tecnológicos</button>
+        <button class="pg-tab" data-ptab="cli" role="tab" aria-selected="false"><span class="tb-n">02</span> Clientes</button>
+      </div>
+
+      <!-- ABA 1: PARCEIROS -->
+      <div class="pg-panel active rv" id="pan-parc" role="tabpanel">
+        <div class="par-grid">
+          <div class="feat-card">
+            <div class="feat-img"><img src="{% static 'site/img/19def96ae-d80e-4620-a647-6e11c5fa270e.webp' %}" alt="Plataforma unificada de segurança em video-wall" width="1600" height="1600" decoding="async" fetchpriority="high"><span class="sol-tag">Plataforma em destaque</span></div>
+            <div class="feat-body">
+              <span class="fk">Hikvision • Software de controle de acesso</span>
+              <h3>HikCentral Professional</h3>
+              <p>Plataforma da Hikvision para integração e gerenciamento unificado de segurança — vários sistemas individuais gerenciados com facilidade em uma única plataforma.</p>
+              <ul class="checks-dk">
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Segurança de vídeo integrada</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Controle de acesso unificado</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Alarmes de segurança</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Operações mais eficientes</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="pwall">
+              <div class="pcat"><h5>Segurança eletrônica</h5><div class="brands"><span>HIKVISION</span><span>digifort</span><span>intelbras</span></div></div>
+              <div class="pcat"><h5>Conectividade</h5><div class="brands"><span>FORTINET</span><span>CISCO</span><span>ZYXEL</span><span>Ruijie · Reyee</span><span>UBIQUITI</span><span>MikroTik</span></div></div>
+              <div class="pcat"><h5>Comunicação</h5><div class="brands"><span>Microsoft</span><span>Jabra GN</span></div></div>
+              <div class="pcat"><h5>Áudio &amp; Vídeo</h5><div class="brands"><span>SAMSUNG</span><span>LG</span><span>logitech</span></div></div>
+              <div class="pcat"><h5>IoT</h5><div class="brands"><span>KHOMP</span><span>NAVA</span><span>MikroTik</span><span>spectrum</span></div></div>
+            </div>
+            <div class="tags-dk">
+              <span>Gestão de acessos</span><span>Gestão de veículos</span><span>Proteção perimetral</span><span>IA nas regras operacionais</span><span>LPR / OCR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 2: CLIENTES -->
+      <div class="pg-panel" id="pan-cli" role="tabpanel">
+        <div class="cli-grid">
+          <div class="cli-card cli-1"><span class="idx">01</span><div class="cli-logo">Unimed<small>DRACENA</small></div><p>Cooperativa de assistência à saúde</p></div>
+          <div class="cli-card cli-2"><span class="idx">02</span><div class="cli-logo">Coren<small>SP</small></div><p>Conselho Regional de Enfermagem de São Paulo</p></div>
+          <div class="cli-card cli-3"><span class="idx">03</span><div class="cli-logo">unesp</div><p>Universidade Estadual Paulista</p></div>
+          <div class="cli-card cli-4"><span class="idx">04</span><div class="cli-logo">TJSP</div><p>Tribunal de Justiça de São Paulo</p></div>
+          <div class="cli-card cli-5"><span class="idx">05</span><div class="cli-logo">MPSP</div><p>Ministério Público do Estado de São Paulo</p></div>
+          <div class="cli-card cli-6"><span class="idx">06</span><div class="cli-logo">USP</div><p>Universidade de São Paulo</p></div>
+          <div class="cli-card cli-7"><span class="idx">07</span><div class="cli-logo">UNICAMP</div><p>Universidade Estadual de Campinas</p></div>
+          <div class="cli-card cli-8"><span class="idx">08</span><div class="cli-logo">TCE·MS</div><p>Tribunal de Contas de Mato Grosso do Sul</p></div>
+          <div class="cli-card cli-9"><span class="idx">09</span><div class="cli-logo">São Paulo<small>AEROPORTOS</small></div><p>Infraestrutura aeroportuária</p></div>
+          <div class="cli-card cli-10"><span class="idx">10</span><div class="cli-logo">TRT<small>PR</small></div><p>Tribunal Regional do Trabalho do Paraná</p></div>
+          <div class="cli-card cli-11"><span class="idx">11</span><div class="cli-logo">TRT<small>SC</small></div><p>Tribunal Regional do Trabalho de Santa Catarina</p></div>
+          <a class="cli-card cli-cta-tile" href="/contato"><div class="cli-logo">Seu órgão ou empresa aqui</div><p>Entre para a lista de quem confia na MP Soluções Corporativas.</p><span class="arr">→</span></a>
+        </div>
+        <div class="trust-row">
+          <div class="trust"><div class="n">+10 anos</div><div class="l">De atuação no mercado</div></div>
+          <div class="trust"><div class="n">Público + Privado</div><div class="l">Setores atendidos</div></div>
+          <div class="trust"><div class="n">11+ clientes</div><div class="l">Órgãos e instituições</div></div>
+          <div class="trust"><div class="n">24h</div><div class="l">Monitoramento contínuo</div></div>
+        </div>
+        <div class="cli-cta">
+          <div><h3>Seja o próximo case de sucesso.</h3><p>Solicite uma avaliação e conheça o ecossistema MP Soluções Corporativas aplicado à sua operação.</p></div>
+          <a href="/contato" class="btn btn-acc">Solicitar avaliação →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+</main>
+{% endblock %}

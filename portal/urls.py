@@ -1,4 +1,10 @@
-"""Mapa de URLs do MP Portal."""
+"""Mapa de URLs do MP Portal.
+
+A raiz e o site institucional, e nao mais um desvio para o login: depois da
+incorporacao, o portal E o site. As rotas autenticadas ficam abaixo de
+`/atendimento/`, e o login e `/login` -- nome escolhido porque o nginx central
+do VPS aplica limite de taxa exatamente a `POST /login`.
+"""
 
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
@@ -7,6 +13,7 @@ from django.urls import include, path
 from django.views.decorators.http import require_POST
 from django.views.generic import RedirectView
 
+from contas.views import apos_login
 from core.views import health_check
 
 
@@ -14,11 +21,10 @@ from core.views import health_check
 def sair(request):
     """Encerra a sessao. Somente POST, para nao ser acionavel por link ou imagem."""
     logout(request)
-    return redirect("login")
+    return redirect("/")
 
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="login", permanent=False)),
     path("health/", health_check, name="health_check"),
     # Sem barra tambem: os aplicativos Flask da frota servem `/health`, e o
     # `APPEND_SLASH` do Django responderia 301 ao caminho sem barra. Vigia
@@ -35,5 +41,10 @@ urlpatterns = [
     ),
     path("login/", RedirectView.as_view(pattern_name="login", permanent=False)),
     path("logout", sair, name="logout"),
+    path("apos-login", apos_login, name="apos_login"),
+    # As rotas do site institucional e as do atendimento compartilham a raiz.
+    # `contatos` vem antes porque serve `/contato`, que o institucional
+    # deliberadamente nao registra (aquela pagina responde GET e POST).
     path("", include("contatos.urls")),
+    path("", include("institucional.urls")),
 ]

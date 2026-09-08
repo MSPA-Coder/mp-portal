@@ -97,7 +97,7 @@ RETENCAO_EXCECAO = (
 #: Com quem os dados sao compartilhados. Hoje: ninguem. Esta linha existe para
 #: que acrescentar um servico de terceiro obrigue a mexer no aviso.
 COMPARTILHAMENTO = (
-    "Nenhum. Os dados ficam no servidor da própria MP Soluções e não são "
+    "Nenhum. Os dados ficam no servidor da própria MP Soluções Corporativas e não são "
     "enviados a serviço de terceiro, nem para análise, nem para envio de "
     "e-mail, nem para publicidade."
 )

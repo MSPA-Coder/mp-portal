@@ -1,10 +1,18 @@
 # ADR 0002 — Sem modelo de cliente enquanto não houver módulo que o use
 
+> **Atualizada em 08/09/2026.** O destino deixou de ser hipótese: o mantenedor
+> declarou que a área autenticada terá **dois públicos em áreas separadas** —
+> clientes e equipe da MP. Isso não muda a decisão de não criar a tabela agora
+> (continua sem módulo que a leia), mas muda duas coisas: o gatilho ficou mais
+> perto, e a **emenda** por onde a segunda área entra já foi construída — o
+> destino pós-login é derivado da conta (`contas/views.py`), não um endereço
+> fixo. Ver "Emenda já construída", ao final.
+
 ## Decisão
 
 O portal nasce **sem** tabela de cliente e sem vínculo entre `UsuarioPortal` e
 cliente. `contas.UsuarioPortal` é uma subclasse vazia de `AbstractUser`, e a
-única autorização existente é `is_staff`, que separa "equipe da MP Soluções" de
+única autorização existente é `is_staff`, que separa "equipe da MP Soluções Corporativas" de
 "qualquer outra conta".
 
 O que existe já é multiusuário no sentido óbvio (várias contas, sessão por
@@ -63,7 +71,29 @@ Registrada aqui para não ser redescoberta:
 
 ## Fora de escopo
 
-Esta decisão não trata de papéis dentro da equipe da MP Soluções. Hoje há dois
+Esta decisão não trata de papéis dentro da equipe da MP Soluções Corporativas. Hoje há dois
 níveis (`is_staff` e o resto) e isso basta para uma lista de solicitações
 operada por uma pessoa. Papel granular é outra decisão, com outro gatilho: mais
 de uma pessoa operando o atendimento.
+
+---
+
+## Emenda já construída — 08/09/2026
+
+Como a área do cliente é destino declarado, a única parte que seria cara de
+acrescentar depois foi feita agora: **para onde cada conta vai depois de
+entrar**.
+
+`LOGIN_REDIRECT_URL` aponta para `/apos-login`, e essa view decide pela conta —
+hoje, `is_staff` vai para `/atendimento/` e qualquer outra volta ao site. No dia
+em que a área do cliente existir, muda-se uma função e nenhum template, menu ou
+teste de navegação precisa ser reescrito.
+
+É o mesmo padrão do ControleBancario, e pelo mesmo motivo escrito lá: destino
+fixo obriga a tela de destino a não exigir permissão nenhuma, o que é uma
+restrição estranha para uma tela de produto.
+
+**O que continua não existindo, e não deve ser inventado antes da hora:** conta
+de cliente, vínculo entre conta e empresa, e qualquer tela sob `/cliente/`. O
+gatilho continua sendo o primeiro módulo com dado por cliente, e a forma
+recomendada continua sendo a das quatro linhas acima.

@@ -6,8 +6,7 @@ nenhum abria uma conexao, entao restricao de banco, migracao e transacao eram
 verificadas por leitura. Aqui as `CheckConstraint` sao exercitadas contra o
 PostgreSQL de verdade, e cada execucao aplica a cadeia inteira de migracoes a
 um banco vazio -- porque e assim que o `pytest-django` constroi o banco de
-teste. Uma migracao que falha ao executar reprova na CI, e nao no `deploy.sh`,
-que reverte codigo e imagem mas nao reverte migracao.
+teste.
 
 O banco e o servico `postgres-teste` do Compose: efemero, em tmpfs, e
 deliberadamente NAO e o `postgres` com dados reais.
@@ -19,24 +18,15 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.test import Client
 
-ORIGEM_DO_SITE = "https://site.exemplo"
-ORIGEM_ESTRANHA = "https://outro.exemplo"
-
 SENHA_DE_TESTE = "senha-de-teste-longa-2026"
 
 
 @pytest.fixture
 def client_com_csrf() -> Client:
     # O cliente de teste do Django dispensa CSRF por padrao; religar e o que
-    # torna o teste de CSRF nao decorativo.
+    # torna o teste de CSRF nao decorativo -- e depois da incorporacao do site
+    # ao portal, o CSRF voltou a proteger tambem o formulario de contato.
     return Client(enforce_csrf_checks=True)
-
-
-@pytest.fixture
-def origens(settings):
-    """Deixa a rota de contato aceitar a origem do site fabricada aqui."""
-    settings.CONTATO_ORIGENS_PERMITIDAS = (ORIGEM_DO_SITE,)
-    return settings
 
 
 @pytest.fixture

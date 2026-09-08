@@ -32,9 +32,13 @@ __all__ = [
     "ContentSecurityPolicyMiddleware",
 ]
 
-# Politica fechada, sem excecao: o portal nao usa URI `data:` em imagem nem
-# `@font-face`. Abrir qualquer uma dessas diretivas exige motivo escrito aqui.
-CONTENT_SECURITY_POLICY = montar_csp()
+# `img-src` abre para `data:`, e este e o motivo escrito que a biblioteca exige
+# no ponto da chamada: o `site.css` herdado do site institucional pinta a
+# textura de ruido do rodape com um SVG embutido como URI `data:`. E a UNICA
+# ocorrencia -- ha teste que reprova o aparecimento de uma segunda em outra
+# diretiva. As fontes sao arquivos `woff2` servidos de `static/`, entao
+# `font-src 'self'` continua fechado.
+CONTENT_SECURITY_POLICY = montar_csp(imagens_data_uri=True)
 
 
 class ContentSecurityPolicyMiddleware:

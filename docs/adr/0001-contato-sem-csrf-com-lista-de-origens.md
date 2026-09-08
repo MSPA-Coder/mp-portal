@@ -1,5 +1,13 @@
 # ADR 0001 — `POST /contato` sem CSRF, com lista de origens
 
+> **REVERTIDA EM 08/09/2026, pelo gatilho que ela própria escreveu.** O site
+> institucional foi incorporado ao portal (ADR 0003), formulário e destino
+> passaram a ser a mesma origem, e o custo do token CSRF caiu a zero. A rota
+> voltou a ser protegida pelo CSRF do Django; `contatos/origens.py`, o CORS, o
+> pré-voo e a verificação `contatos.E002` foram removidos. O texto abaixo fica
+> como estava, porque o registro de por que a decisão fez sentido é o que
+> permite julgar se a reversão faz. Ver a seção final.
+
 ## Decisão
 
 A rota `POST /contato` é a única do portal marcada com `@csrf_exempt`. No lugar
@@ -62,3 +70,30 @@ isenção.
 Esta decisão não afeta a área de atendimento, o login, nem qualquer rota
 autenticada. `SESSION_COOKIE_SAMESITE = "Lax"` continua valendo e é o que
 impede que o cookie do portal seja enviado por uma página de terceiro.
+
+---
+
+## Reversão — 08/09/2026
+
+O gatilho secundário desta ADR dizia: *"se o site deixar de ser estático e
+passar a ser servido pela mesma aplicação, o custo do token cai a zero e não há
+mais motivo para a isenção"*. Foi exatamente o que aconteceu (ADR 0003).
+
+**O que saiu:** `contatos/origens.py`, a configuração
+`CONTATO_ORIGENS_PERMITIDAS`, os cabeçalhos de CORS, o tratamento de `OPTIONS`,
+a verificação `contatos.E002` e a aceitação de corpo JSON — que existia para
+servir um `fetch` de outra origem que não existe mais.
+
+**O que entrou no lugar:** nada de novo. O `CsrfViewMiddleware` do Django, que
+já protegia todas as outras rotas, passou a proteger também esta. Um teste
+exercita o caminho com `enforce_csrf_checks` ligado, e ele reprova o envio sem
+token.
+
+**O que permaneceu, porque nunca foi sobre CSRF:** o campo-armadilha, o limite
+por resumo de endereço de rede, o corpo pequeno e o consentimento como
+restrição de banco. Eles defendem contra abuso e spam, não contra requisição
+forjada — e abuso continua existindo depois da incorporação.
+
+**Se um dia o formulário voltar a morar fora desta aplicação** — um parceiro
+embutindo o formulário no site dele, por exemplo —, esta ADR volta a valer
+inteira, e o histórico de por que ela funcionava está preservado acima.

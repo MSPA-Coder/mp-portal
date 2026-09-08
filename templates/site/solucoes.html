@@ -1,0 +1,105 @@
+{% extends "site/base.html" %}
+{% load static %}
+
+{% block conteudo %}
+<div id="routeTag">MP // SOLUÇÕES</div>
+
+<main>
+<div class="page sec-light active" id="page-solucoes">
+  <section class="screen">
+    <div class="wrap sol-full">
+      <div class="sol-head-row rv">
+        <div><span class="sec-label" data-scramble data-text="// SOLUÇÕES">// SOLUÇÕES</span><h1 class="mid">Quatro linhas, uma operação integrada.</h1></div>
+        <p>Selecione uma linha para ver escopo, recursos e entregáveis de cada frente de trabalho.</p>
+      </div>
+      <div class="sol-stage rv">
+        <div class="sol-tabs" role="tablist" aria-label="Linhas de solução">
+          <button class="tab-btn active" data-tab="seg" role="tab" aria-selected="true"><span class="t-n">01</span><span><span class="t-name">Segurança eletrônica</span><span class="t-desc">CFTV, alarmes, acesso e monitoramento 24h.</span></span></button>
+          <button class="tab-btn" data-tab="por" role="tab" aria-selected="false"><span class="t-n">02</span><span><span class="t-name">Portaria e recepção</span><span class="t-desc">Presencial, remota e híbrida.</span></span></button>
+          <button class="tab-btn" data-tab="fac" role="tab" aria-selected="false"><span class="t-n">03</span><span><span class="t-name">Facilities</span><span class="t-desc">Limpeza, manutenção e apoio.</span></span></button>
+          <button class="tab-btn" data-tab="int" role="tab" aria-selected="false"><span class="t-n">04</span><span><span class="t-name">Soluções integradas</span><span class="t-desc">Consultoria, projetos e gestão.</span></span></button>
+        </div>
+        <div class="sol-panels">
+          <div class="sol-panel active" id="pan-seg" role="tabpanel">
+            <div class="sol-img"><img src="{% static 'site/img/19342d778-a449-48f3-aa08-f21e8008609b.webp' %}" alt="Central de monitoramento" width="1600" height="1600" decoding="async" fetchpriority="high"><span class="sol-tag">Linha 01 — Segurança eletrônica</span></div>
+            <div class="sol-body">
+              <h3>Segurança eletrônica e monitoramento 24h</h3>
+              <p>Camadas de proteção que se integram: dissuasão, detecção, verificação e resposta — operadas por central própria, todos os dias, a qualquer hora.</p>
+              <ul class="checks">
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>CFTV e videomonitoramento</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Monitoramento 24 horas</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Alarmes e anti-intrusão</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Controle de acesso</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Reconhecimento facial e biometria</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Vídeo analítico com IA</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Proteção perimetral</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Resposta a ocorrências</li>
+              </ul>
+              <div class="tags"><span>CFTV</span><span>IA</span><span>Biometria</span><span>Perimetral</span></div>
+              <a class="link-arrow dk" href="/contato">Solicitar projeto de segurança →</a>
+            </div>
+          </div>
+          <div class="sol-panel" id="pan-por" role="tabpanel">
+            <div class="sol-img"><img src="{% static 'site/img/1a2a713ae-c7a1-4621-a292-5f396ca17037.webp' %}" alt="Recepção corporativa com catracas" width="1600" height="1600" decoding="async" loading="lazy"><span class="sol-tag">Linha 02 — Portaria e recepção</span></div>
+            <div class="sol-body">
+              <h3>Portaria e recepção sob medida</h3>
+              <p>Modelos presencial, remoto e híbrido para controlar pessoas, veículos e visitantes com atendimento cordial e procedimentos claros.</p>
+              <ul class="checks">
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Portaria presencial</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Portaria remota e híbrida</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Controle de pessoas e veículos</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Gestão de visitantes e QR Code</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Recepção e atendimento</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Atendimento remoto a visitantes</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Procedimentos padronizados</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Equipes treinadas e uniformizadas</li>
+              </ul>
+              <div class="tags"><span>Presencial</span><span>Remota</span><span>Híbrida</span><span>Visitantes</span></div>
+              <a class="link-arrow dk" href="/contato">Entender o modelo ideal →</a>
+            </div>
+          </div>
+          <div class="sol-panel" id="pan-fac" role="tabpanel">
+            <div class="sol-img"><img src="{% static 'site/img/1f6dd1b24-ff57-4787-b1b5-5f87d463971a.webp' %}" alt="Equipe de facilities em edifício corporativo" width="1600" height="1600" decoding="async" loading="lazy"><span class="sol-tag">Linha 03 — Facilities</span></div>
+            <div class="sol-body">
+              <h3>Facilities que mantêm a operação viva</h3>
+              <p>Rotinas de conservação e manutenção que preservam o patrimônio, a imagem do seu endereço e o conforto de quem circula por ele.</p>
+              <ul class="checks">
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Limpeza e conservação</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Higienização de ambientes</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Manutenção predial</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Serviços elétricos</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Jardinagem e áreas verdes</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Apoio operacional</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Multisserviços sob demanda</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Atendimento emergencial</li>
+              </ul>
+              <div class="tags"><span>Limpeza</span><span>Predial</span><span>Jardinagem</span><span>Elétrica</span></div>
+              <a class="link-arrow dk" href="/contato">Montar rotina de facilities →</a>
+            </div>
+          </div>
+          <div class="sol-panel" id="pan-int" role="tabpanel">
+            <div class="sol-img"><img src="{% static 'site/img/129029d1f-0c3c-4afa-8f9d-d1050cd715b5.webp' %}" alt="Consultor analisando planta em tablet" width="1600" height="1600" decoding="async" loading="lazy"><span class="sol-tag">Linha 04 — Soluções integradas</span></div>
+            <div class="sol-body">
+              <h3>Soluções integradas de ponta a ponta</h3>
+              <p>Consultoria, projeto, implantação e gestão: pessoas, tecnologia e operação trabalhando como um único sistema, com indicadores e melhoria contínua.</p>
+              <ul class="checks">
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Consultoria e análise de riscos</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Projetos de segurança personalizados</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Implantação de sistemas</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Manutenção preventiva e corretiva</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Brigada e prevenção de incêndio</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Gestão operacional com indicadores</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Relatórios e melhoria contínua</li>
+                <li><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg>Apoio técnico a licitações</li>
+              </ul>
+              <div class="tags"><span>Consultoria</span><span>Projetos</span><span>Indicadores</span><span>SLA</span></div>
+              <a class="link-arrow dk" href="/contato">Falar com um consultor →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+{% endblock %}

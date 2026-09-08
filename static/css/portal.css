@@ -1,88 +1,36 @@
-/* Estilo do portal.
+/* Telas internas: login, atendimento e o aviso de privacidade.
  *
- * A paleta e a mesma do site institucional (`site/assets/css/site.css` do
- * repositorio MpSolucoes) para que as duas coisas pareçam da mesma empresa.
- * As FONTES nao sao: o site vendoriza Archivo e IBM Plex, e o portal usa a
- * pilha do sistema. Copiar arquivos de fonte para ca custaria KB em toda
- * pagina de uma area interna que quase ninguem abre.
+ * Carregado SO nessas paginas, depois do `site.css`. Aqui nao ha paleta,
+ * tipografia, cabecalho nem rodape: tudo isso vem do site, e e o que faz as
+ * duas metades parecerem o mesmo produto. Este arquivo tem apenas o que o site
+ * institucional nao tinha por nao precisar -- tabela de dados, ficha, filtro e
+ * paginacao.
  *
- * Sem `@import`, sem CDN, sem `url()` remoto: a CSP e `default-src 'self'`.
+ * As variaveis (`--panel`, `--line`, `--ink`, `--mut`, `--acc`) sao as do
+ * site.css. Nao redefina nenhuma aqui: duas fontes para a mesma cor divergem.
  */
 
-:root {
-  --bg: #070d18;
-  --bg2: #0b1526;
-  --panel: #0e1b30;
-  --line: rgba(146, 170, 205, 0.16);
-  --line2: rgba(146, 170, 205, 0.3);
-  --ink: #edf2f9;
-  --mut: #93a3bb;
-  --acc: #31e3a2;
-  --acc-deep: #0c9b70;
-  --amb: #ffb224;
-  --perigo: #ff6b6b;
-  --pilha: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--pilha);
-  font-size: 15px;
-  line-height: 1.55;
-}
-
-a { color: var(--acc); }
-a:hover { color: var(--acc-deep); }
-
-.topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--line);
-}
-
-.marca {
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-decoration: none;
-  color: var(--ink);
-}
-.marca span { color: var(--acc); }
-
-.topo-acoes { display: flex; align-items: center; gap: 16px; }
-.topo-acoes form { margin: 0; }
-
-.conteudo { max-width: 1040px; margin: 0 auto; padding: 24px 20px 48px; }
-
 .cartao {
+  max-width: 1040px;
+  margin: 32px auto;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 24px;
 }
-.cartao-estreito { max-width: 460px; margin: 40px auto; }
+.cartao-estreito { max-width: 460px; }
+.documento { max-width: 760px; }
+.documento p, .documento li { max-width: 68ch; }
 
-h1 { font-size: 1.5rem; margin: 0 0 4px; }
-h2 { font-size: 1.05rem; margin: 24px 0 6px; color: var(--acc); }
+.cartao h1 { font-size: 1.5rem; margin: 0 0 4px; }
+.cartao h2 { font-size: 1.05rem; margin: 24px 0 6px; color: var(--acc); }
 
-.discreto { color: var(--mut); font-size: 0.9rem; }
+.discreto { color: var(--mut); font-size: .9rem; }
 .vazio { color: var(--mut); text-align: center; padding: 24px 0; }
 
 .campo { margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
-label { color: var(--mut); font-size: 0.85rem; }
-
-input[type="text"],
-input[type="password"],
-input[type="email"],
-select,
-textarea {
+.campo label { color: var(--mut); font-size: .85rem; }
+.campo input {
   width: 100%;
   padding: 9px 10px;
   background: var(--bg);
@@ -91,39 +39,26 @@ textarea {
   border-radius: 6px;
   font: inherit;
 }
-input:focus, select:focus, textarea:focus { outline: 2px solid var(--acc); }
-
-.botao {
-  padding: 9px 16px;
-  background: var(--acc);
-  color: #06231a;
-  border: 0;
-  border-radius: 6px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.botao:hover { background: var(--acc-deep); color: var(--ink); }
-.botao-perigo { background: var(--perigo); color: #2b0808; }
-.botao-texto {
-  background: none;
-  border: 0;
-  color: var(--acc);
-  font: inherit;
-  cursor: pointer;
-  padding: 0;
-}
+.campo input:focus { outline: 2px solid var(--acc); }
 
 .alerta {
   border-left: 3px solid var(--amb);
-  background: rgba(255, 178, 36, 0.08);
+  background: rgba(255, 178, 36, .08);
   padding: 10px 12px;
   border-radius: 4px;
 }
-.alerta-lista { color: var(--amb); }
 
 .filtro { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-.filtro select { width: auto; min-width: 200px; }
+.filtro label { color: var(--mut); font-size: .85rem; }
+.filtro select {
+  padding: 9px 10px;
+  min-width: 200px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  font: inherit;
+}
 
 /* Tabela larga rola dentro do proprio quadro; o corpo da pagina nunca rola na
    horizontal. */
@@ -140,29 +75,32 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--acc); }
   border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
-.tabela th { color: var(--mut); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.tabela th {
+  color: var(--mut);
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
 
 .ficha { display: grid; grid-template-columns: 220px 1fr; gap: 6px 16px; margin: 16px 0; }
-.ficha dt { color: var(--mut); font-size: 0.85rem; }
+.ficha dt { color: var(--mut); font-size: .85rem; }
 .ficha dd { margin: 0; }
 .mensagem { white-space: pre-wrap; }
 
 .paginacao { display: flex; align-items: center; gap: 16px; margin-top: 16px; color: var(--mut); }
 
-.documento { max-width: 760px; margin: 0 auto; }
-.documento p, .documento li { max-width: 68ch; }
-
-.rodape {
-  border-top: 1px solid var(--line);
-  padding: 16px 20px;
-  color: var(--mut);
-  font-size: 0.85rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+.botao {
+  padding: 9px 16px;
+  background: var(--acc);
+  color: #06231a;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
-.rodape p { margin: 0; }
+.botao:hover { background: var(--acc-deep); color: var(--ink); }
+.botao-perigo { background: #ff6b6b; color: #2b0808; }
 
 @media (max-width: 640px) {
   .ficha { grid-template-columns: 1fr; }

@@ -7,19 +7,20 @@ from django.conf import settings
 from sharedauth.security import SECURITY_HEADERS, montar_csp
 
 from core.security import CONTENT_SECURITY_POLICY
+from institucional.paginas import PAGINAS
 
 pytestmark = pytest.mark.django_db
 
 
 def test_politica_e_a_fechada_da_biblioteca_compartilhada():
     """Abrir uma diretiva exige mudar aqui tambem, e explicar por que."""
-    assert montar_csp() == CONTENT_SECURITY_POLICY
+    assert montar_csp(imagens_data_uri=True) == CONTENT_SECURITY_POLICY
     assert "unsafe-inline" not in CONTENT_SECURITY_POLICY
     assert CONTENT_SECURITY_POLICY.startswith("default-src 'self'")
 
 
 def test_toda_resposta_carrega_a_politica_e_os_defensivos(client):
-    for caminho in ("/privacidade", "/login", "/health"):
+    for caminho in ("/", "/contato", "/privacidade", "/login", "/health"):
         resposta = client.get(caminho)
         assert resposta["Content-Security-Policy"] == CONTENT_SECURITY_POLICY, caminho
         for cabecalho, valor in SECURITY_HEADERS.items():
@@ -48,7 +49,7 @@ def test_nenhuma_pagina_vaza_sintaxe_de_template(client, atendente):
         aviso_versao=AVISO_VERSAO,
     )
 
-    caminhos = ["/login", "/privacidade", "/contato/recebido"]
+    caminhos = [c.caminho for c in PAGINAS] + ["/login", "/privacidade", "/contato/recebido"]
     for caminho in caminhos:
         corpo = client.get(caminho).content.decode("utf-8")
         for marca in ("{#", "{%", "{{"):
@@ -84,11 +85,21 @@ def test_cookie_de_sessao_e_fechado():
     assert settings.CSRF_COOKIE_HTTPONLY is True
 
 
-def test_a_raiz_leva_ao_login(client):
+def test_a_raiz_e_o_site_institucional(client):
+    """Antes da incorporacao a raiz desviava para o login. Agora o portal E o site."""
     resposta = client.get("/")
 
-    assert resposta.status_code == 302
-    assert resposta["Location"] == "/login"
+    assert resposta.status_code == 200
+    assert "MP SOLUÇÕES CORPORATIVAS" in resposta.content.decode("utf-8")
+
+
+def test_data_uri_so_esta_liberado_para_imagem(client):
+    """A folga existe por UMA razao escrita: o SVG de ruido dentro do site.css."""
+    assert "img-src 'self' data:" in CONTENT_SECURITY_POLICY
+    assert "script-src 'self';" in CONTENT_SECURITY_POLICY
+    assert "style-src 'self';" in CONTENT_SECURITY_POLICY
+    assert "font-src 'self'" in CONTENT_SECURITY_POLICY
+    assert CONTENT_SECURITY_POLICY.count("data:") == 1
 
 
 def test_logout_nao_acontece_por_get(client, atendente):

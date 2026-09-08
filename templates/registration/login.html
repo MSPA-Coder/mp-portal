@@ -1,6 +1,9 @@
-{% extends "base.html" %}
+{% extends "site/base.html" %}
+{% load static %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'css/portal.css' %}">{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
 
-{% block titulo %}Entrar — MP Portal{% endblock %}
+{% block titulo %}Entrar — MP Soluções Corporativas{% endblock %}
 
 {% block conteudo %}
 <section class="cartao cartao-estreito">

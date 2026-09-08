@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "core",
     "contas",
     "contatos",
+    "institucional",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +99,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # O menu existe em toda pagina, institucional ou autenticada:
+                # uma casca so foi o motivo de incorporar o site ao portal.
+                "institucional.contexto.navegacao",
             ],
         },
     },
@@ -180,8 +184,12 @@ AUTH_USER_MODEL = "contas.UsuarioPortal"
 # no repositorio `manutencao`). Nomear a rota assim herda essa protecao no dia
 # da publicacao, sem configuracao nova.
 LOGIN_URL = "/login"
-LOGIN_REDIRECT_URL = "/atendimento/"
-LOGOUT_REDIRECT_URL = "/login"
+# Destino DERIVADO da conta, e nao fixo: ver `contas/views.py`. E a emenda por
+# onde a area do cliente entra sem que a navegacao precise ser reescrita.
+LOGIN_REDIRECT_URL = "/apos-login"
+# Depois de sair, a pessoa fica no site institucional -- que agora e a mesma
+# aplicacao. Mandar para a tela de login sugere que ela precisa entrar de novo.
+LOGOUT_REDIRECT_URL = "/"
 
 # Endurecimento de transporte. E uma propriedade da implantacao, nao do modo de
 # depuracao: a instalacao padrao publica em loopback sobre HTTP, onde cookies
@@ -235,11 +243,11 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 # Recebimento de contato do site (achado L20 do LEVANTAMENTO_2026-09.md)
 # ---------------------------------------------------------------------------
 
-# Origens autorizadas a enviar `POST /contato`. VAZIO SIGNIFICA RECUSAR TUDO
-# fora do modo de depuracao -- ver `contatos/origens.py`. Nao ha padrao com o
-# dominio escrito: o site foi construido sem o dominio em arquivo nenhum (fase
-# F5) e o portal nao vai reintroduzir esse acoplamento.
-CONTATO_ORIGENS_PERMITIDAS = _lista_do_ambiente("CONTATO_ORIGENS_PERMITIDAS")
+# A lista de origens permitidas SAIU com a incorporacao do site ao portal
+# (08/09/2026). Ela existia porque o formulario morava num site estatico de
+# outra origem e o token CSRF nao tinha como chegar ate la; agora o formulario
+# e servido pela propria aplicacao, e quem protege a rota e o CSRF do Django.
+# O gatilho dessa troca estava escrito no ADR 0001 e disparou.
 
 # Limite de envios por origem de rede numa janela deslizante. Nao substitui o
 # limite do nginx: e a defesa que continua valendo quando o servico e acessado

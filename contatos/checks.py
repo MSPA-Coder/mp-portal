@@ -17,7 +17,10 @@ from django.conf import settings
 from django.core.checks import Error
 
 CANAL_AUSENTE = "contatos.E001"
-ORIGENS_AUSENTES = "contatos.E002"
+# `contatos.E002` era a lista de origens permitidas, e saiu com a incorporacao
+# do site ao portal: o formulario passou a ser servido pela propria aplicacao e
+# quem protege a rota e o CSRF. O identificador nao e reaproveitado, para que um
+# registro antigo de CI nao mude de significado.
 RETENCAO_INVALIDA = "contatos.E003"
 
 
@@ -50,19 +53,6 @@ def verificar_configuracao_publica(app_configs, **kwargs) -> list[Error]:
                     "de ambiente CONTATO_CANAL_TITULAR."
                 ),
                 id=CANAL_AUSENTE,
-            )
-        )
-
-    if not settings.CONTATO_ORIGENS_PERMITIDAS:
-        problemas.append(
-            Error(
-                "CONTATO_ORIGENS_PERMITIDAS esta vazia numa implantacao publica.",
-                hint=(
-                    "Sem lista, POST /contato recusa todo envio -- o formulario "
-                    "do site responderia 403 a cada visitante. Informe a origem "
-                    "do site (esquema e host, sem barra no fim)."
-                ),
-                id=ORIGENS_AUSENTES,
             )
         )
 

@@ -58,6 +58,7 @@ packages = [
   "core",
   "contas",
   "contatos",
+  "institucional",
 ]
 
 # `sharedauth` e referencia direta a um repositorio Git (nao a um indice PyPI):
@@ -100,6 +101,7 @@ known-first-party = [
     "core",
     "contas",
     "contatos",
+    "institucional",
     "tests",
 ]
 

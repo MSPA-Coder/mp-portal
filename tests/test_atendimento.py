@@ -74,13 +74,31 @@ def test_login_recusa_credencial_errada_sem_dizer_qual_parte_errou(client, atend
     assert "both fields" not in corpo
 
 
-def test_login_valido_leva_ao_atendimento(client, atendente):
+def test_login_valido_passa_pelo_destino_derivado(client, atendente):
+    """O destino sai da conta, e nao de um endereco fixo: e a emenda da area do cliente."""
     resposta = client.post(
         "/login", {"username": "atendente", "password": SENHA_DE_TESTE}
     )
 
     assert resposta.status_code == 302
+    assert resposta["Location"] == "/apos-login"
+
+
+def test_destino_derivado_manda_a_equipe_para_o_atendimento(client, atendente):
+    client.force_login(atendente)
+
+    resposta = client.get("/apos-login")
+
     assert resposta["Location"] == "/atendimento/"
+
+
+def test_destino_derivado_de_conta_sem_area_volta_ao_site(client, pessoa_sem_acesso):
+    """Enquanto a area do cliente nao existir, quem nao e da equipe fica no site."""
+    client.force_login(pessoa_sem_acesso)
+
+    resposta = client.get("/apos-login")
+
+    assert resposta["Location"] == "/"
 
 
 # ---------------------------------------------------------------------------

@@ -1,34 +1,49 @@
 # MP Portal
 
-Aplicação Django que recebe as solicitações de contato do site institucional da
-MP Soluções e dá a elas um lugar para existir: um banco PostgreSQL, uma área de
-atendimento com autenticação e um aviso de privacidade que descreve exatamente
-o que é guardado.
+O site e o sistema da **MP Soluções Corporativas**, numa aplicação só.
+
+- **Sete páginas institucionais públicas** — início, soluções, método,
+  segmentos, parceiros, empresa e contato. Ninguém precisa de conta para ler,
+  navegar ou pedir um orçamento.
+- **Um formulário de contato com destino real** — o pedido vai para o
+  PostgreSQL, com consentimento registrado e prazo de retenção que é cumprido
+  por comando.
+- **Uma área com login** — hoje o atendimento, usado pela equipe da MP para
+  triar as solicitações. É a área que vai crescer.
 
 É o repositório previsto pela **fase F7** do `LEVANTAMENTO_2026-09.md`
-(repositório `manutencao`): Django, consumindo `sharedauth`, no padrão da frota
-— Compose, CI, `/health`, `deploy.sh`, backup e vigia.
+(repositório `manutencao`), no padrão da frota: Django, `sharedauth`, Compose,
+CI, `/health`, `deploy.sh`, backup e vigia.
 
-## O que existe hoje
+## Rotas
 
 | | |
 |---|---|
-| `POST /contato` | Recebe o formulário do site. Aceita formulário comum e JSON, valida, guarda e devolve um protocolo. |
-| `GET /privacidade` | O aviso de privacidade, montado a partir de `contatos/privacidade.py`. |
-| `GET /atendimento/` | Lista das solicitações. Exige conta com `is_staff`. |
-| `GET /health` | Sonda que consulta o banco. Contrato comum aos aplicativos da frota. |
+| `/`, `/solucoes`, `/metodo`, `/segmentos`, `/parceiros`, `/empresa` | Páginas institucionais. Não consultam o banco. |
+| `/contato` | A página com o formulário (GET) e o recebimento (POST), na mesma rota. |
+| `/privacidade` | O aviso de privacidade, montado a partir de `contatos/privacidade.py`. |
+| `/login` → `/apos-login` | Entrada. O destino sai da conta, não de um endereço fixo. |
+| `/atendimento/` | Lista e ficha das solicitações. Exige conta com `is_staff`. |
+| `/health` | Sonda que consulta o banco. Contrato comum aos aplicativos da frota. |
+| `/robots.txt`, `/sitemap.xml` | Gerados da mesma tabela que monta o menu. |
 
 ## O que ainda não existe, e não por esquecimento
 
-- **Área do cliente.** O portal ainda não tem módulo com dado por cliente, e
-  por isso não tem tabela de cliente: estrutura sem consumidor é especulação.
-  A forma recomendada e o gatilho estão em
+- **Área do cliente.** É destino declarado — a área autenticada terá dois
+  públicos, clientes e equipe, em áreas separadas. Mas ainda não há serviço
+  definido para pôr lá, e tabela sem consulta que a leia é especulação. A
+  emenda por onde ela entra já existe (o destino derivado do login); a forma e
+  o gatilho estão em
   [`docs/adr/0002-multiusuario-adiado-ate-existir-modulo.md`](docs/adr/0002-multiusuario-adiado-ate-existir-modulo.md).
 - **Aviso de chegada.** Quando uma solicitação entra, nada avisa ninguém — ela
   fica na lista até alguém abrir. O motivo e o caminho estão em
   [`docs/operacao.md`](docs/operacao.md).
-- **Publicação no VPS.** O portal não está no ar. O que falta, na ordem, está
-  em [`docs/operacao.md`](docs/operacao.md).
+- **Dados de contato reais.** Telefone e e-mail continuam mascarados com
+  asteriscos, por decisão registrada (achado L16): publicar contato falso é
+  pior que não publicar.
+- **Publicação no VPS.** O portal não está no ar, e o site estático continua
+  sendo o que atende em produção. A virada é um passo próprio, descrito em
+  [`docs/operacao.md`](docs/operacao.md).
 
 ## Rodar localmente
 
@@ -42,13 +57,13 @@ openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 30 \
   -keyout /tmp/ca.key -out .certs/local-root-ca.crt -subj "/CN=MpPortal Local CA"
 ```
 
-Subir a aplicação como ela é servida (gunicorn, imagem imutável):
+Subir como é servido (gunicorn, imagem imutável):
 
 ```bash
 docker compose up --build
 ```
 
-O portal responde em <http://127.0.0.1:5601>. A primeira conta:
+Responde em <http://127.0.0.1:5601>. A primeira conta da equipe:
 
 ```bash
 docker compose run --rm web python manage.py createsuperuser
@@ -70,23 +85,18 @@ O `--build` **não é opcional**: o serviço `quality` não monta o código do h
 e `docker compose run` sem ele reaproveita a imagem anterior — a suíte passaria
 em verde sobre o código de antes.
 
-A suíte inteira toca o banco. Isso é resposta ao achado L01 do levantamento: as
+A suíte inteira toca o banco. É resposta ao achado L01 do levantamento: as
 restrições (`CheckConstraint`), as migrações e a autorização são exercitadas
 contra um PostgreSQL de verdade — efêmero, em tmpfs, e deliberadamente separado
 do banco com dados.
 
 ## Configuração
 
-Copie `.env.docker.example` para `.env.docker` e ajuste. Dois pontos merecem
-atenção:
-
-- **`CONTATO_ORIGENS_PERMITIDAS` vazio recusa todo envio** fora do modo de
-  depuração. É proposital: esquecer de configurar vira um 403 visível, e não um
-  endpoint aberto.
-- **Com `USE_HTTPS=True`, a aplicação recusa subir** sem
-  `CSRF_TRUSTED_ORIGINS`, `CONTATO_CANAL_TITULAR` e
-  `CONTATO_ORIGENS_PERMITIDAS`. Uma implantação pública sem canal para o
-  titular publica um aviso de privacidade que não tem como ser cumprido.
+Copie `.env.docker.example` para `.env.docker` e ajuste. O ponto que mais
+importa: **com `USE_HTTPS=True` a aplicação recusa subir** sem
+`CSRF_TRUSTED_ORIGINS` e sem `CONTATO_CANAL_TITULAR`. Uma implantação pública
+sem canal para o titular publica um aviso de privacidade que não tem como ser
+cumprido.
 
 ## Retenção
 
@@ -104,4 +114,5 @@ entra junto com a publicação.
 - [`AGENTS.md`](AGENTS.md) — invariantes e como trabalhar neste repositório.
 - [`docs/operacao.md`](docs/operacao.md) — o que falta para publicar, e o que a
   publicação aciona.
-- [`docs/adr/`](docs/adr) — as duas decisões que custam caro para reverter.
+- [`docs/adr/`](docs/adr) — as três decisões que custam caro para reverter,
+  incluindo a incorporação do site (0003) e a reversão que ela provocou (0001).

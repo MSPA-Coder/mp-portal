@@ -19,7 +19,6 @@ from django.utils import timezone
 from contatos import privacidade as aviso
 from contatos.checks import (
     CANAL_AUSENTE,
-    ORIGENS_AUSENTES,
     RETENCAO_INVALIDA,
     verificar_configuracao_publica,
 )
@@ -130,21 +129,14 @@ def test_expurgo_simulado_nao_apaga_nada(settings):
 # ---------------------------------------------------------------------------
 
 
-@override_settings(
-    USE_HTTPS=True, CONTATO_CANAL_TITULAR="", CONTATO_ORIGENS_PERMITIDAS=()
-)
-def test_implantacao_publica_sem_canal_e_sem_origens_reprova():
+@override_settings(USE_HTTPS=True, CONTATO_CANAL_TITULAR="")
+def test_implantacao_publica_sem_canal_do_titular_reprova():
     ids = {problema.id for problema in verificar_configuracao_publica(None)}
 
     assert CANAL_AUSENTE in ids
-    assert ORIGENS_AUSENTES in ids
 
 
-@override_settings(
-    USE_HTTPS=True,
-    CONTATO_CANAL_TITULAR="privacidade@exemplo.com.br",
-    CONTATO_ORIGENS_PERMITIDAS=("https://site.exemplo",),
-)
+@override_settings(USE_HTTPS=True, CONTATO_CANAL_TITULAR="privacidade@exemplo.com.br")
 def test_implantacao_publica_completa_passa():
     assert verificar_configuracao_publica(None) == []
 

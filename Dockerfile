@@ -59,6 +59,7 @@ COPY portal ./portal
 COPY core ./core
 COPY contas ./contas
 COPY contatos ./contatos
+COPY institucional ./institucional
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
@@ -128,6 +129,7 @@ COPY portal ./portal
 COPY core ./core
 COPY contas ./contas
 COPY contatos ./contatos
+COPY institucional ./institucional
 COPY templates ./templates
 COPY static ./static
 

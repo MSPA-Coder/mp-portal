@@ -1,0 +1,52 @@
+{% extends "site/base.html" %}
+{% load static %}
+
+{% block conteudo %}
+<div id="routeTag">MP // MÉTODO</div>
+
+<main>
+<div class="page active" id="page-metodo">
+  <section class="screen noise">
+    <div class="wrap met-split">
+      <div class="met-intro-col rv">
+        <span class="sec-label" data-scramble data-text="// MÉTODO">// MÉTODO</span>
+        <h1 class="big">Um método claro em seis etapas.</h1>
+        <p class="sub">Da visita técnica à melhoria contínua: cada etapa tem objetivo, responsáveis e entregáveis definidos — para que a solução certa seja projetada, implantada e mantida no tempo.</p>
+        <div class="met-points">
+          <span><b>✓</b> Diagnóstico no local</span>
+          <span><b>✓</b> Escopo definido em contrato</span>
+          <span><b>✓</b> Operação com indicadores</span>
+          <span><b>✓</b> Melhoria contínua</span>
+        </div>
+        <p class="p-cta-metodo"><a href="/contato" class="btn btn-acc">Começar pelo diagnóstico</a></p>
+      </div>
+      <div class="m-player rv">
+        <div class="m-timeline" id="mTimeline">
+          <div class="m-line"></div><div id="mBar"></div>
+          <button class="m-node cur" data-i="0"><i></i><span>Diagnóstico</span></button>
+          <button class="m-node" data-i="1"><i></i><span>Projeto</span></button>
+          <button class="m-node" data-i="2"><i></i><span>Implantação</span></button>
+          <button class="m-node" data-i="3"><i></i><span>Operação</span></button>
+          <button class="m-node" data-i="4"><i></i><span>Monitoramento</span></button>
+          <button class="m-node" data-i="5"><i></i><span>Manutenção</span></button>
+        </div>
+        <div class="m-detail" id="mDetail">
+          <div class="m-num" id="mNum">01</div>
+          <div class="m-body">
+            <span class="m-kicker mono" id="mKick">ETAPA 01 / 06</span>
+            <h3 id="mTitle">Diagnóstico</h3>
+            <p id="mDesc">Visita técnica para entender o ambiente, os riscos, os fluxos de pessoas e veículos e as necessidades reais da operação.</p>
+            <div class="m-chips" id="mChips"></div>
+            <div class="m-ctrl">
+              <button id="mPrev" class="btn btn-ghost btn-sm">← Anterior</button>
+              <button id="mNext" class="btn btn-acc btn-sm">Próxima etapa →</button>
+              <button id="mAuto" class="auto-chip on" aria-pressed="true" title="Alternar reprodução automática"><i></i>Auto</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+{% endblock %}

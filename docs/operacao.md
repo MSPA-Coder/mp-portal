@@ -1,47 +1,53 @@
-# Operação: o que falta para o portal existir no mundo
+# Operação: a virada, e o que ela aciona
 
-O portal **não está publicado**. Este documento é a lista do que falta, na
-ordem em que precisa acontecer, e o que cada passo aciona. Ele existe para que
-o dia da publicação seja uma execução, e não uma redescoberta.
+O portal **não está publicado**. Em produção, quem atende `mp-solucoes` hoje é
+o site estático do repositório `MpSolucoes`, servido por nginx na porta 5501.
+Publicar este repositório não é instalar um serviço novo: é **substituir um
+serviço que está no ar**.
+
+Este documento é a lista do que falta, na ordem, para que o dia da virada seja
+uma execução e não uma redescoberta.
 
 ## 0. Antes de qualquer coisa: três decisões voltam à mesa
 
 A §6 do `LEVANTAMENTO_2026-09.md` registra cinco riscos aceitos, cada um com o
-gatilho que deve fazer a decisão ser revisitada. **Publicar o portal dispara
-três deles.**
+gatilho que deve fazer a decisão ser revisitada. **A virada dispara três.**
 
 | Achado | O que estava aceito | Por que dispara agora |
 |---|---|---|
-| **L06** — RTO nunca medido | Sabe-se que o dump restaura; não se sabe em quanto tempo o ambiente inteiro volta. | O gatilho escrito é literal: *"antes de o portal do cliente entrar no ar — a partir daí, a indisponibilidade tem custo para terceiro"*. Um formulário que não responde é um cliente que não chega. |
-| **L19** — DuckDNS | Sufixo compartilhado, sem autoridade de domínio, sem e-mail corporativo. | O aviso de privacidade precisa publicar um canal para o titular. `algo@gmail.com` num aviso de privacidade de empresa é o tipo de detalhe que corrói confiança, e o domínio próprio resolve os dois de uma vez. |
-| **L11** — `mp-solucoes` sem branch protection | `main` aceita force-push, sem status check obrigatório (recurso pago no plano atual). | O portal guarda dado pessoal de terceiro. O que se aceita para um site institucional não é o mesmo que se aceita para um repositório cujo defeito vaza dado de outra pessoa. |
+| **L06** — RTO nunca medido | Sabe-se que o dump restaura; não se sabe em quanto tempo o ambiente inteiro volta. | O gatilho é literal: *"antes de o portal do cliente entrar no ar"*. E agora vale mais: depois da incorporação, **o site institucional cai junto com a aplicação**. Um site fora do ar é cliente que não chega. |
+| **L19** — DuckDNS | Sufixo compartilhado, sem autoridade de domínio, sem e-mail corporativo. | O domínio próprio já está a caminho. Ele destrava o e-mail no domínio (encaminhamento gratuito resolve) e o canal do titular exigido pela LGPD, que hoje não tem endereço. |
+| **L11** — `mp-solucoes` sem branch protection | `main` aceita force-push, sem status check obrigatório. | O que se aceita para um site estático não é o que se aceita para um repositório cujo defeito derruba o site **e** vaza dado pessoal de terceiro. |
 
-Nenhum dos três é bloqueio técnico. Os três são decisões suas, e estão aqui
-porque decisão adiada que não é reencontrada no momento certo vira risco
-esquecido.
+## 1. Medir o RTO antes (L06)
 
-## 1. Infraestrutura no repositório `manutencao`
+Não é burocracia: a incorporação transferiu o site institucional para dentro de
+uma aplicação com banco. Antes da virada, vale saber quanto tempo leva para
+reconstruir o ambiente do zero e se o `KIT_RECUPERACAO.md` está correto. É a
+diferença entre "o site voltou em 20 minutos" e "o site voltou quando deu".
+
+## 2. Infraestrutura no repositório `manutencao`
 
 Editar `vps/` lá **não implanta nada** — a cópia do servidor é a que roda.
 Depois de mudar: `bash vps/instalar.sh` no VPS e conferir com `--check`.
 
-- **vhost novo** em `vps/nginx/`, apontando para `127.0.0.1:5601`, no mesmo
-  formato dos cinco existentes. O limite de taxa de `POST /login` do
-  `conf.d/00-comum.conf` já pega o portal de graça — a rota chama `/login`
-  exatamente por isso.
-- **`deploy.sh`**: verbo novo (`portal`), com o `/health` público na sonda.
+- **vhost**: o host público passa a apontar para `127.0.0.1:5601` em vez de
+  `:5501`. O limite de taxa de `POST /login` do `conf.d/00-comum.conf` já pega o
+  portal de graça — a rota chama `/login` exatamente por isso.
+- **`deploy.sh`**: verbo `portal` entra; o verbo `mp` sai **depois** de a virada
+  estar verificada, não antes — enquanto os dois existirem, voltar atrás é
+  trocar uma linha do vhost.
 - **`backup-db.sh`**: o banco `mp_portal` entra no ciclo diário. É o primeiro
-  banco da frota com dado pessoal de terceiro — vale conferir a retenção dos
-  dumps à luz disso.
-- **`vigia.sh`**: mais um `/health` a vigiar.
-- **`uptimerobot-monitores.sh`**: monitor externo do endpoint público.
-- O **sentinela** e a **autocura** já cobrem o portal sem mudança: um lê o log
-  de 5xx por host, o outro reinicia contêiner `unhealthy`.
+  banco da frota com dado pessoal de terceiro; vale reler a retenção dos dumps
+  à luz disso.
+- **`vigia.sh`** e **`uptimerobot-monitores.sh`**: o `/health` do portal entra;
+  o do site sai junto com o serviço.
+- **sentinela** e **autocura** cobrem o portal sem mudança nenhuma.
 - **timer do expurgo**: `manage.py expurgar_contatos` precisa rodar sozinho, ou
-  o prazo declarado no aviso de privacidade é uma promessa que ninguém cumpre.
-  Diário, no mesmo formato dos outros timers.
+  o prazo declarado no aviso de privacidade é promessa que ninguém cumpre.
+  Diário, no formato dos outros timers.
 
-## 2. Segredos e variáveis no VPS
+## 3. Segredos e variáveis no VPS
 
 Dois arquivos em `.secrets/` (`django_secret_key`, `postgres_password`) e, no
 `.env.docker`:
@@ -50,65 +56,62 @@ Dois arquivos em `.secrets/` (`django_secret_key`, `postgres_password`) e, no
 USE_HTTPS=True
 ALLOWED_HOSTS=<host público>
 CSRF_TRUSTED_ORIGINS=https://<host público>
-CONTATO_ORIGENS_PERMITIDAS=https://<origem do site>
 CONTATO_PROXIES_CONFIAVEIS=<rede do nginx central>
 CONTATO_CANAL_TITULAR=<endereço para o titular>
 ```
 
-Com `USE_HTTPS=True` e qualquer um dos três últimos ausente, **a aplicação
-recusa subir** (`contatos/checks.py`). É deliberado: um aviso de privacidade que
-promete um canal inexistente é pior do que não ter aviso.
+Com `USE_HTTPS=True` e o canal ausente, **a aplicação recusa subir**. É
+deliberado: um aviso de privacidade que promete um canal inexistente é pior que
+não ter aviso.
 
-## 3. Ligar o formulário do site
+`CONTATO_PROXIES_CONFIAVEIS` importa mais do que parece: sem ela, o limite de
+envios conta todo o tráfego como vindo do nginx central — um só balde para
+todos os visitantes.
 
-Hoje `contato.html` do `MpSolucoes` valida os campos e diz na tela que nada saiu
-do navegador. São três ajustes pequenos lá:
+## 4. O que **não** é mais necessário
 
-1. **`action` e `method`** no `<form>`, apontando para a rota do portal.
-2. **`name="solucoes"`** nas caixas de solução (hoje é `name="sol"`) e `value=`
-   com os códigos do catálogo (`seguranca_eletronica`, `portaria`, `facilities`,
-   `integradas`); o mesmo para o `<select>` de segmento (`condominios`,
-   `industrias`, `empresas`, `comercio`, `saude`, `educacao`, `setor_publico`,
-   `outro`). Os códigos são estáveis; o texto exibido pode mudar sem quebrar
-   registro antigo.
-3. **caixa de consentimento** obrigatória, com link para o aviso de privacidade,
-   e remoção do aviso de rascunho e do `formOk` que simula envio.
+Estas tarefas existiam enquanto o site e o portal eram dois. A incorporação as
+eliminou, e ficam registradas para que ninguém as procure:
 
-### Onde a rota deve morar, e por quê
+- ligar o formulário do site ao endpoint do portal;
+- renomear campos do formulário no outro repositório;
+- afrouxar `form-action` ou `connect-src` na CSP do site;
+- configurar lista de origens, CORS e pré-voo.
 
-Duas formas, e a recomendação é a primeira:
+## 5. Dados que faltam antes de divulgar
 
-- **Mesma origem, pelo nginx central** — o vhost do site passa `POST /contato`
-  (e só ele) para o contêiner do portal. Não há CORS, não há pré-voo, e a CSP do
-  site continua com `form-action 'self'`. Se o envio for por `fetch`, o único
-  afrouxamento é `connect-src 'self'` no lugar de `'none'`.
-- **Origem do portal, com CORS** — o formulário envia direto para
-  `https://portal.<domínio>/contato`. Funciona (a rota já responde ao pré-voo e
-  ecoa `Access-Control-Allow-Origin`), mas exige afrouxar `form-action` ou
-  `connect-src` na CSP do site para incluir o host do portal.
+- **Telefone, WhatsApp e e-mail comercial reais**, hoje mascarados com
+  asteriscos em `templates/site/_rodape.html` e `templates/site/contato.html`
+  (achado L16). Publicar contato falso é pior que não publicar.
+- **Canal do titular** para o aviso de privacidade. Com o domínio próprio, um
+  alias encaminhado (`privacidade@`) resolve sem custo mensal.
 
-A primeira mantém a CSP do site praticamente intacta, que foi trabalho da fase
-F5 e não deve ser desfeito por conveniência.
-
-## 4. O aviso de chegada
+## 6. O aviso de chegada
 
 Quando uma solicitação entra, **nada avisa ninguém** — ela fica na lista até
-alguém abrir. Isso é conhecido, não é esquecimento, e a solução não é um
-`EmailBackend` dentro do contêiner: pela mesma razão da fase F4, o contêiner é
-`read_only`, não tem o token do Telegram e não deveria ter.
+alguém abrir. É conhecido, e a solução não é um `EmailBackend` dentro do
+contêiner: pela mesma razão da fase F4, ele é `read_only`, não tem o token do
+Telegram e não deveria ter.
 
-O caminho que combina com a frota é o mesmo do sentinela: um script no host, com
-timer, que consulta o portal (por um comando `manage.py` ou uma rota interna) e
-chama o `alerta.sh` quando houver solicitação nova. Fica registrado como o
-primeiro item depois da publicação.
+O caminho que combina com a frota é o do sentinela: um script no host, com
+timer, que consulta o portal (por um comando `manage.py` ou rota interna) e
+chama o `alerta.sh` quando houver solicitação nova. É o primeiro item depois da
+publicação.
 
-## 5. Verificação depois de publicar
+## 7. Verificação depois da virada
 
-- as sete rotas respondendo: `/`, `/login`, `/privacidade`, `/contato`
-  (POST e OPTIONS), `/contato/recebido`, `/atendimento/`, `/health`;
-- um envio real pelo formulário do site, ponta a ponta, chegando à lista;
-- um envio com origem errada recebendo 403;
-- `manage.py expurgar_contatos --simular` no servidor;
-- o backup do banco `mp_portal` aparecendo no ciclo diário e relido com
-  `pg_restore --list`;
-- o `/health` novo no vigia e no monitor externo.
+- as sete páginas institucionais em 200, e os seis `.html` em 301;
+- `/contato` mostrando o formulário, e um envio real chegando à lista;
+- um envio sem token CSRF recusado;
+- `/privacidade` acessível pelo rodapé, com o canal do titular preenchido;
+- `/atendimento/` pedindo login para quem não tem sessão;
+- `robots.txt` e `sitemap.xml` com o **domínio novo**, sem nenhuma edição no
+  repositório — é a prova de que a propriedade da F5 sobreviveu;
+- `/health` no vigia e no monitor externo;
+- o backup do banco `mp_portal` no ciclo diário, relido com `pg_restore --list`;
+- `manage.py expurgar_contatos --simular` no servidor.
+
+## 8. Depois de tudo verificado
+
+Arquivar o repositório `MpSolucoes` (arquivar, não apagar: o histórico da F5
+continua legível), remover o verbo `mp` do `deploy.sh` e podar a imagem antiga.

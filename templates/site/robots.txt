@@ -1,0 +1,14 @@
+# Todo o conteudo institucional e publico. O que fica de fora do rastreamento e
+# a area autenticada: ela nao tem conteudo indexavel e cada visita do robo vira
+# um redirecionamento para o login.
+#
+# A linha Sitemap exige URL absoluta, e o dominio nao esta escrito no arquivo:
+# ele vem do proprio request, do mesmo jeito que no `canonical` de cada pagina.
+
+User-agent: *
+Allow: /
+Disallow: /atendimento/
+Disallow: /login
+Disallow: /contato/recebido
+
+Sitemap: {{ url_base }}/sitemap.xml

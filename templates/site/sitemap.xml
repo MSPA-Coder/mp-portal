@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+{% comment %}
+  As paginas institucionais, lidas de `institucional/paginas.py` -- a mesma
+  tabela que monta o menu e o `<head>`. Enquanto este arquivo era estatico, a
+  lista era digitada a mao e podia divergir do site; agora, pagina nova aparece
+  aqui sozinha, e ha teste que compara as duas coisas.
+
+  Sem `lastmod`, `changefreq` ou `priority`: a data teria de ser mantida a mao e
+  envelheceria em silencio, e uma data errada e pior que data nenhuma. Os outros
+  dois campos os buscadores ignoram ha anos.
+{% endcomment %}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{% for pagina in paginas %}  <url><loc>{{ url_base }}{{ pagina.caminho }}</loc></url>
+{% endfor %}</urlset>

@@ -1,6 +1,8 @@
-{% extends "base.html" %}
+{% extends "site/base.html" %}
+{% load static %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'css/portal.css' %}">{% endblock %}
 
-{% block titulo %}Aviso de privacidade — MP Soluções{% endblock %}
+{% block titulo %}Aviso de privacidade — MP Soluções Corporativas{% endblock %}
 
 {% block conteudo %}
 <article class="cartao documento">
@@ -8,7 +10,7 @@
   <p class="discreto">Versão {{ versao }}, vigente desde {{ vigente_desde|date:"d/m/Y" }}.</p>
 
   <h2>Quem trata os dados</h2>
-  <p>A MP Soluções é a controladora dos dados pessoais enviados pelo formulário
+  <p>A MP Soluções Corporativas é a controladora dos dados pessoais enviados pelo formulário
      de contato do site, nos termos da Lei 13.709/2018 (LGPD).</p>
 
   <h2>Para que</h2>
@@ -55,7 +57,7 @@
 
   <h2>Segurança</h2>
   <p>Os dados ficam em servidor próprio, com acesso restrito a contas
-     autenticadas da MP Soluções. O endereço IP de quem envia não é guardado:
+     autenticadas da MP Soluções Corporativas. O endereço IP de quem envia não é guardado:
      é registrado apenas um resumo criptográfico, usado para conter envio
      automatizado em massa.</p>
 </article>

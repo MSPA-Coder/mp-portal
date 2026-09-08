@@ -1,0 +1,66 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+{% comment %}
+  A casca de TODO o portal -- as sete páginas institucionais e as telas
+  autenticadas. Uma casca só é o motivo de o site ter sido incorporado: enquanto
+  eram dois projetos, cabeçalho, rodapé e menu existiam em duas linguagens de
+  template, e "Atendimento" no menu obrigava as duas cópias a serem idênticas
+  para sempre. Ver docs/adr/0003-site-incorporado-ao-portal.md.
+
+  `{% comment %}` e não `{# #}`: a forma com cerquilha só vale em uma linha.
+
+  CSP: `default-src 'self'`, sem estilo nem script embutido. O único uso de
+  `data:` é o SVG de ruído dentro do site.css, e é por isso que `img-src` abre
+  para `data:` -- ver core/security.py.
+{% endcomment %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block titulo %}{{ titulo|default:"MP Soluções Corporativas" }}{% endblock %}</title>
+<meta name="description" content="{% block descricao %}{{ descricao|default:"Segurança eletrônica, portaria e facilities integrados, com monitoramento 24h, controle de acesso e gestão operacional." }}{% endblock %}">
+{% block robots %}{% endblock %}
+
+{% comment %}
+  O domínio não está escrito em arquivo nenhum, e isso é deliberado: sai do
+  próprio request. Era a propriedade que o nginx dava ao site estático (fase
+  F5) e a incorporação preserva — trocar de domínio continua sendo zero edição
+  no repositório.
+{% endcomment %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MP Soluções Corporativas">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="{% block og_titulo %}{{ titulo|default:"MP Soluções Corporativas" }}{% endblock %}">
+<meta property="og:description" content="{% block og_descricao %}{{ descricao|default:"Segurança eletrônica, portaria e facilities integrados." }}{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if imagem %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static imagem %}">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="1600">
+<meta property="og:image:alt" content="{{ imagem_alt }}">
+{% endif %}
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+<link rel="stylesheet" href="{% static 'site/fonts/fonts.css' %}">
+<link rel="stylesheet" href="{% static 'site/css/site.css' %}">
+{% block cabeca %}{% endblock %}
+<script src="{% static 'site/js/site.js' %}" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MP Soluções Corporativas",
+  "alternateName": "MP Soluções Corporativas — Segurança, Tecnologia e Facilities",
+  "description": "Segurança eletrônica, portaria e facilities integrados, com monitoramento 24h, controle de acesso e gestão operacional.",
+  "areaServed": "BR",
+  "knowsLanguage": "pt-BR"
+}
+</script>
+</head>
+<body class="{% block corpo_classe %}{{ classe_do_corpo|default:'pg-interno' }}{% endblock %}">
+{% include "site/_topo.html" %}
+{% block conteudo %}{% endblock %}
+{% include "site/_rodape.html" %}
+</body>
+</html>

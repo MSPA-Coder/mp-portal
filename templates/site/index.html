@@ -1,0 +1,97 @@
+{% extends "site/base.html" %}
+{% load static %}
+
+{% block conteudo %}
+<div id="routeTag">MP // INÍCIO</div>
+
+<main>
+<div class="page active" id="page-home">
+  <section class="screen hero noise">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow" id="eyebrowScramble" data-text="SEGURANÇA • TECNOLOGIA • FACILITIES">SEGURANÇA • TECNOLOGIA • FACILITIES</div>
+        <h1 id="heroTitle">
+          <span class="lm"><span class="lm-i">Protegemos pessoas,</span></span>
+          <span class="lm"><span class="lm-i">patrimônios e</span></span>
+          <span class="lm"><span class="lm-i acc">operações.</span></span>
+        </h1>
+        <p class="lead">Segurança eletrônica, portaria e facilities integrados — com <b>tecnologia</b>, <b>equipes treinadas</b> e <b>gestão operacional</b> próxima do seu dia a dia, 24 horas por dia.</p>
+        <div class="hero-cta">
+          <a href="/contato" class="btn btn-acc">Solicite uma avaliação</a>
+          <a href="/solucoes" class="btn btn-ghost">Conhecer soluções</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="n"><span data-count="24">0</span><em>h</em></div><div class="l">Monitoramento contínuo</div></div>
+          <div class="hstat"><div class="n"><span data-count="4">0</span></div><div class="l">Linhas de solução</div></div>
+          <div class="hstat"><div class="n"><span data-count="6">0</span></div><div class="l">Etapas de método</div></div>
+          <div class="hstat"><div class="n"><span data-count="7">0</span></div><div class="l">Segmentos atendidos</div></div>
+        </div>
+      </div>
+      <div class="ops-panel rv">
+        <div class="ops-head"><span>Central MP // Visão operacional</span><span class="rec"><i></i>REC</span></div>
+        <div class="cam-grid">
+          <div class="cam"><img src="{% static 'site/img/16aa6ddeb-e766-468d-ad01-02390b0eb5b4.webp' %}" alt="Câmera — recepção" width="1600" height="1600" decoding="async" fetchpriority="high"><span class="cam-label">CAM 01 • RECEPÇÃO</span><span class="cam-time">--:--:--</span></div>
+          <div class="cam"><img src="{% static 'site/img/156c432b6-bdf3-4808-b7b8-ca2165ba78cc.webp' %}" alt="Câmera — perímetro" width="1600" height="1600" decoding="async"><span class="cam-label">CAM 02 • PERÍMETRO</span><span class="cam-time">--:--:--</span></div>
+          <div class="cam"><img src="{% static 'site/img/1ac99a34b-9e3a-4ba0-b36f-5989c666eac0.webp' %}" alt="Câmera — garagem" width="1600" height="1600" decoding="async"><span class="cam-label">CAM 03 • GARAGEM</span><span class="cam-time">--:--:--</span></div>
+          <div class="cam"><img src="{% static 'site/img/10442a1ec-33f2-4ff1-b31e-c1f988eae52a.webp' %}" alt="Câmera — acessos" width="1600" height="1600" decoding="async"><span class="cam-label">CAM 04 • ACESSOS</span><span class="cam-time">--:--:--</span></div>
+        </div>
+        <div class="ops-foot">
+          <div class="chips"><span class="chip-st"><i></i>CFTV online</span><span class="chip-st"><i></i>Alarmes armados</span><span class="chip-st warn"><i></i>Portaria ativa</span><span class="chip-st"><i></i>Rondas em dia</span></div>
+          <div class="feed-head"><i></i>Eventos da central</div>
+          <ul id="eventFeed"></ul>
+        </div>
+      </div>
+    </div>
+    <button class="go-next" type="button">Explorar<i></i></button>
+  </section>
+
+  <div class="marquee" aria-hidden="true"><div class="mq-track" id="mqTrack">
+    <span><i>◆</i>CFTV e videomonitoramento</span><span><i>◆</i>Monitoramento 24 horas</span><span><i>◆</i>Portaria presencial, remota e híbrida</span><span><i>◆</i>Controle de acesso</span><span><i>◆</i>Reconhecimento facial</span><span><i>◆</i>Proteção perimetral</span><span><i>◆</i>Limpeza e higienização</span><span><i>◆</i>Manutenção predial</span><span><i>◆</i>Jardinagem</span><span><i>◆</i>Análise de riscos</span><span><i>◆</i>Gestão de facilities</span>
+  </div></div>
+
+  <section class="screen noise">
+    <div class="wrap mani-grid">
+      <div class="rv">
+        <span class="sec-label" data-scramble data-text="// QUEM SOMOS">// QUEM SOMOS</span>
+        <h2 class="mid">Uma única parceria, do diagnóstico à <span class="acc">operação contínua</span>.</h2>
+        <p class="sub">A MP Soluções Corporativas integra pessoas, tecnologia e processos para diagnosticar o ambiente, projetar a solução, implantar os sistemas, operar o monitoramento e manter a estrutura funcionando — sem prometer mais do que podemos entregar.</p>
+        <p class="p-cta-prosa"><a class="link-arrow" href="/empresa">Conhecer a empresa →</a></p>
+      </div>
+      <div class="rv">
+        <div class="pil-row"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.7-3.6 3.3-6 6.5-6s5.8 2.4 6.5 6M16 4.6a3.5 3.5 0 0 1 0 6.8M17.5 14.4c2.2.7 3.6 2.7 4 5.6"/></svg><div><h4>Pessoas treinadas</h4><p>Equipes uniformizadas, procedimentos padronizados e supervisão próxima do cliente.</p></div></div>
+        <div class="pil-row"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><div><h4>Tecnologia operada</h4><p>CFTV, controle de acesso, alarmes e vídeo analítico acompanhados por central 24h.</p></div></div>
+        <div class="pil-row"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l5 3.5V9l5 3.5V20M17 20V5h2v15"/></svg><div><h4>Gestão com indicadores</h4><p>Relatórios, métricas e melhoria contínua para uma operação sempre auditável.</p></div></div>
+      </div>
+    </div>
+    <button class="go-next" type="button">Soluções<i></i></button>
+  </section>
+
+  <section class="screen noise">
+    <div class="wrap">
+      <div class="prev-head rv">
+        <div><span class="sec-label" data-scramble data-text="// SOLUÇÕES">// SOLUÇÕES</span><h2 class="mid">O que fazemos</h2></div>
+        <a class="link-arrow" href="/solucoes">Ver todas as linhas →</a>
+      </div>
+      <div class="prev-grid rv">
+        <a class="prev-card" href="/solucoes#seg"><span class="pn">01</span><h3>Segurança eletrônica</h3><p>CFTV, alarmes, controle de acesso e monitoramento 24 horas.</p><span class="arr">→</span></a>
+        <a class="prev-card" href="/solucoes#por"><span class="pn">02</span><h3>Portaria e recepção</h3><p>Modelos presencial, remoto e híbrido com gestão de visitantes.</p><span class="arr">→</span></a>
+        <a class="prev-card" href="/solucoes#fac"><span class="pn">03</span><h3>Facilities</h3><p>Limpeza, manutenção predial, jardinagem e apoio operacional.</p><span class="arr">→</span></a>
+        <a class="prev-card" href="/solucoes#int"><span class="pn">04</span><h3>Soluções integradas</h3><p>Consultoria, projetos, implantação e gestão com indicadores.</p><span class="arr">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen cta-band noise">
+    <div class="wrap rv">
+      <span class="sec-label" data-scramble data-text="// PRÓXIMO PASSO">// PRÓXIMO PASSO</span>
+      <h2>Solicite uma avaliação <b>sem compromisso</b>.</h2>
+      <p>Conte sua necessidade e receba um diagnóstico inicial com a combinação certa de segurança, portaria e facilities.</p>
+      <div class="hero-cta">
+        <a href="/contato" class="btn btn-acc">Solicitar orçamento</a>
+        <a href="/metodo" class="btn btn-ghost">Conhecer o método</a>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+{% endblock %}
