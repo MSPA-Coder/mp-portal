@@ -1,4 +1,11 @@
+# Com `COPY . .` no Dockerfile, esta e a lista unica do que fica FORA da
+# imagem. O estagio `builder` ainda precisa de pyproject.toml, uv.lock e
+# README.md; o `quality` precisa de tests/ -- por isso nenhum deles entra aqui.
+
 .git
+.gitattributes
+.gitignore
+.dropboxignore
 .github
 .idea
 .agents
@@ -24,3 +31,10 @@ htmlcov
 .pytest_cache
 .mypy_cache
 .ruff_cache
+
+# Nao sao usados por nenhum estagio do build.
+docs
+AGENTS.md
+Dockerfile
+compose.yaml
+compose.dev.yaml

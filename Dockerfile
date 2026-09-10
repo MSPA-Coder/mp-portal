@@ -54,13 +54,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install --upgrade "uv==0.12.10"
 
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+
+# Duas fases. Primeiro so as dependencias, numa camada que so se invalida
+# quando `uv.lock` muda -- editar template ou teste nao refaz a resolucao.
 COPY pyproject.toml uv.lock README.md ./
-COPY portal ./portal
-COPY core ./core
-COPY contas ./contas
-COPY contatos ./contatos
-COPY institucional ./institucional
-COPY tarefas ./tarefas
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
+
+# Agora o codigo e a instalacao do proprio projeto como wheel. `COPY . .` no
+# lugar de listar cada app: a lista de pacotes vive num lugar so, o
+# `[tool.hatch.build.targets.wheel]` do `pyproject.toml`, e o que NAO entra na
+# imagem vive num lugar so, o `.dockerignore`. App novo esquecido no
+# `pyproject` faz o build de wheel reprovar aqui -- nao vira 500 em producao.
+COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
@@ -125,15 +131,22 @@ RUN groupadd --system app \
     && chown app:app /workspace/staticfiles /workspace/logs
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --chmod=755 manage.py ./manage.py
-COPY portal ./portal
-COPY core ./core
-COPY contas ./contas
-COPY contatos ./contatos
-COPY institucional ./institucional
-COPY tarefas ./tarefas
-COPY templates ./templates
-COPY static ./static
+
+# `COPY . .` no lugar de uma linha por app: o `.dockerignore` e a lista unica do
+# que NAO entra na imagem, e nao ha uma segunda lista de apps para esquecer de
+# atualizar. `BASE_DIR` se deriva de `portal/settings.py` estar em
+# `/workspace/portal`, entao o codigo precisa estar aqui mesmo com o wheel
+# instalado no venv.
+COPY . .
+RUN chmod 755 manage.py
+
+# Tripwire de build: app faltando na arvore, erro de import ou de configuracao
+# de app quebra aqui, e nao no primeiro request em producao. `check` carrega
+# todos os apps e nao toca o banco. As credenciais sao de build.
+RUN DJANGO_SECRET_KEY=build-only-nao-usada-em-execucao \
+    POSTGRES_PASSWORD=build-only \
+    PYTHONPATH=/workspace \
+    python manage.py check
 
 # Tira `pip` e `setuptools` da imagem SERVIDA.
 #
