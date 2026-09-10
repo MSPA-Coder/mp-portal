@@ -19,7 +19,8 @@
 
     <nav class="pnl-nav" aria-label="Áreas do sistema">
       <a href="{% url 'tarefas_lista' %}"{% if pagina_ativa == "tarefas" %} class="active" aria-current="page"{% endif %}>Tarefas</a>
-      {% if user.is_staff %}<a href="{% url 'atendimento_lista' %}"{% if pagina_ativa == "atendimento" %} class="active" aria-current="page"{% endif %}>Atendimento</a>{% endif %}
+      {% if user.is_staff %}<a href="{% url 'atendimento_lista' %}"{% if pagina_ativa == "atendimento" %} class="active" aria-current="page"{% endif %}>Atendimento</a>
+      <a href="{% url 'contas_lista' %}"{% if pagina_ativa == "contas" %} class="active" aria-current="page"{% endif %}>Contas</a>{% endif %}
     </nav>
 
     <div class="pnl-conta">

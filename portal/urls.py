@@ -78,5 +78,6 @@ urlpatterns = [
     # deliberadamente nao registra (aquela pagina responde GET e POST).
     path("", include("contatos.urls")),
     path("", include("tarefas.urls")),
+    path("", include("contas.urls")),
     path("", include("institucional.urls")),
 ]

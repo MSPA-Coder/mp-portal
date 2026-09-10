@@ -1,0 +1,45 @@
+{% extends "app/base.html" %}
+
+{% block titulo %}Contas — MP Soluções Corporativas{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <div class="cartao-topo">
+    <div>
+      <h1>Contas</h1>
+      <p class="discreto">Quem tem acesso ao portal. Não há exclusão: quem sai
+        fica <em>inativo</em>, e o histórico de tarefas continua.</p>
+    </div>
+    <a href="{% url 'conta_nova' %}" class="botao">Nova conta</a>
+  </div>
+
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Nome</th><th>Usuário</th><th>Papel</th>
+        <th>Tarefas abertas</th><th>Situação</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for conta in contas %}
+        <tr{% if not conta.is_active %} class="etiqueta-cancelada"{% endif %}>
+          <td>{{ conta.get_full_name|default:"—" }}</td>
+          <td class="mono">{{ conta.username }}</td>
+          <td>{% if conta.is_staff %}Administra{% else %}Usa{% endif %}</td>
+          <td>{{ conta.tarefas_abertas }}</td>
+          <td>
+            {% if conta.is_active %}
+              <span class="etiqueta etiqueta-em_andamento">Ativa</span>
+            {% else %}
+              <span class="etiqueta">Inativa</span>
+            {% endif %}
+          </td>
+          <td><a href="{% url 'conta_editar' conta.pk %}">Editar</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="vazio">Nenhuma conta.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
