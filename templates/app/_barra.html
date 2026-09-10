@@ -1,0 +1,33 @@
+{% comment %}
+  Barra da área logada. Enxuta de propósito: as áreas do sistema, quem está
+  logado e a saída. Sem o menu institucional, sem a barra "0800 24h", sem o
+  botão de orçamento -- quem está aqui veio trabalhar, não navegar o material
+  comercial (ADR 0005).
+
+  O item ativo sai de `pagina_ativa`, que a view informa -- a mesma mecânica do
+  site, decidida no servidor para o `aria-current` valer com script desligado
+  ou leitor de tela.
+
+  A marca leva para `/`: é a porta de volta ao site público.
+{% endcomment %}
+<header class="pnl-barra">
+  <div class="pnl-wrap">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 44 48" width="30" height="33" aria-hidden="true"><path d="M22 2 42 10v13c0 12-8.5 18.5-20 23C10.5 41.5 2 35 2 23V10Z" fill="#0E1B30" stroke="#31E3A2" stroke-width="2"/><text x="22" y="29" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="14" fill="#EDF2F9">MP</text></svg>
+      <span class="brand-txt"><strong>MP SOLUÇÕES</strong><small>Painel</small></span>
+    </a>
+
+    <nav class="pnl-nav" aria-label="Áreas do sistema">
+      <a href="{% url 'tarefas_lista' %}"{% if pagina_ativa == "tarefas" %} class="active" aria-current="page"{% endif %}>Tarefas</a>
+      {% if user.is_staff %}<a href="{% url 'atendimento_lista' %}"{% if pagina_ativa == "atendimento" %} class="active" aria-current="page"{% endif %}>Atendimento</a>{% endif %}
+    </nav>
+
+    <div class="pnl-conta">
+      <span class="pnl-nome">{{ user.get_full_name|default:user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="botao botao-discreto">Sair</button>
+      </form>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,98 @@
+/* Barra da área logada.
+ *
+ * Carregado só na casca `app/base.html`, depois de `site.css` e `portal.css`.
+ * Não há paleta nem tipografia aqui -- as variáveis (`--panel`, `--line`,
+ * `--ink`, `--mut`, `--acc`, `--hh`, `--disp`, `--mono`) são as do `site.css`,
+ * e é o que mantém as duas metades do portal com a mesma cara. Não redefina
+ * nenhuma: duas fontes para a mesma cor divergem.
+ *
+ * O conteúdo das telas (cartão, tabela, ficha, linha do tempo) continua no
+ * `portal.css`. Este arquivo tem só a barra e o enquadramento da página.
+ */
+
+.painel {
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* Barra fixa no topo, no mesmo lugar e com o mesmo peso do cabeçalho do site,
+   mas sem o menu institucional. */
+.pnl-barra {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  height: var(--hh);
+  background: rgba(7, 13, 24, .88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.pnl-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 26px;
+  height: var(--hh);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* `.brand` e `.brand-txt` vêm do site.css; aqui só o subtítulo "Painel" pede
+   um tom diferente do "Segurança • Tecnologia" do site. */
+.pnl-barra .brand-txt strong { font-size: 16px; }
+.pnl-barra .brand-txt small { color: var(--acc); letter-spacing: .22em; }
+
+.pnl-nav {
+  display: flex;
+  gap: 22px;
+  margin-right: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.pnl-nav a {
+  position: relative;
+  padding: 6px 0;
+  transition: color .2s;
+}
+.pnl-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0;
+  background: var(--acc);
+  transition: width .25s;
+}
+.pnl-nav a:hover,
+.pnl-nav a.active { color: var(--ink); }
+.pnl-nav a:hover::after,
+.pnl-nav a.active::after { width: 100%; }
+
+.pnl-conta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.pnl-nome {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+/* O `.cartao` do portal.css já traz `margin: 32px auto`; aqui só garante a
+   folga lateral no celular, onde a barra encolhe. */
+.painel-area { padding: 0 6px; }
+
+@media (max-width: 680px) {
+  .pnl-wrap { gap: 14px; padding: 0 16px; }
+  .pnl-barra .brand-txt { display: none; }
+  .pnl-nav { gap: 16px; font-size: 10px; letter-spacing: .1em; }
+  .pnl-nome { display: none; }
+}
