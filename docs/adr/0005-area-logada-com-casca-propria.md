@@ -1,11 +1,10 @@
 # ADR 0005 — A área logada tem casca própria, e quem entra é um círculo de confiança
 
-> **Rascunho para revisão — 10/09/2026.** Registra a diretriz nova do
-> mantenedor: o portal deixa de ser "site com um anexo interno" e passa a ter
-> duas metades com aparência própria, e o punhado de pessoas que entra
-> (mantenedor + três) compartilha tudo lá dentro. **Fases 1 a 3 implementadas
-> (aguardando revisão para commitar); fases 4 a 6 pendentes.** O plano está ao
-> final.
+> **10/09/2026.** Registra a diretriz nova do mantenedor: o portal deixa de ser
+> "site com um anexo interno" e passa a ter duas metades com aparência própria,
+> e o punhado de pessoas que entra (mantenedor + três) compartilha tudo lá
+> dentro. **Fases 1 a 5 implementadas e commitadas; a fase 6 está adiada.** O
+> plano está ao final.
 >
 > **Desvio da fase 1:** a tela de `/login` **continuou na casca do site**, e
 > não na do painel. É a soleira pública -- alcançada pelo item "Login" do menu
@@ -171,9 +170,16 @@ Cada fase é um PR pequeno, revisável e reversível sozinho.
 | **1 — Casca própria** | `templates/app/base.html` + `app/_barra.html`; mover tarefas (lista/detalhe/formulário) e atendimento (lista/detalhe) para ela; `css/painel.css`; trocar os itens internos do `_topo.html` do site por uma porta só ("Painel"); testes de navegação e de casca | baixo, aditivo | ✅ feito |
 | **2 — Prefixo `/painel/`** | `tarefas.urls` e as rotas de atendimento passam para `painel/…`; 301 dos endereços antigos (`_legado_para_painel`); `robots.txt` fecha `/painel/`; `reverse()`/`{% url %}` por nome, então nem views nem templates mudam de corpo | baixo | ✅ feito |
 | **3 — `login_required` nas tarefas** | tarefas sai de `somente_equipe` para `login_required`; `equipe()` vira `pessoas()` (toda conta ativa); `apos_login` manda todo mundo para as tarefas; `core/autorizacao.py` passa a guardar só a administração; testes reescritos | baixo | ✅ feito |
-| **4 — CRUD de contas** | rotas `/painel/contas/` (lista, criar, editar, ativar/desativar), `is_staff`; sem e-mail (senha definida na tela, com os validadores do Django); testes | médio | pendente |
-| **5 — Responsável pelo atendimento** | campo/config de conta designada (`is_staff`); cada `Contato` novo aponta para ela; a lista destaca "as minhas" | médio | pendente |
+| **4 — CRUD de contas** | rotas `/painel/contas/` (lista, criar, editar, ativar/desativar), `is_staff`; sem e-mail (senha definida na tela, com os validadores do Django); trava de não-se-trancar-para-fora; testes | médio | ✅ feito |
+| **5 — Responsável pelo atendimento** | `UsuarioPortal.recebe_novos_contatos` (a caixa de entrada designada, `is_staff`, no máximo uma); `Contato.responsavel` (FK); reatribuição na ficha; coluna e filtro "só as minhas"; aviso de privacidade → 1.1 | médio | ✅ feito |
 | **6 — (adiada) abrir atendimento + revisar o aviso** | só se a revisão futura decidir abrir: cláusula de compartilhamento e finalidade no aviso de privacidade, nova versão, e então afrouxar a autorização do atendimento | alto (LGPD) | adiada |
 
-As fases 1–3 saíram num bloco só (é a "virada de casca"). A 4 e a 5 podem
-começar quando o mantenedor quiser; a 6 está adiada por decisão dele.
+As fases 1–3 saíram num bloco só (é a "virada de casca"); a 4 e a 5, num
+segundo. A 6 está adiada por decisão do mantenedor.
+
+## Fica aberto, e não é desta ADR
+
+O **aviso de chegada** continua não existindo: a fase 5 dá dono a cada
+solicitação, mas nada avisa a pessoa que chegou uma. O caminho está em
+`docs/operacao.md` (script no host com timer que consulta o portal e chama o
+`alerta.sh`), e não muda por causa da ADR 0005.

@@ -8,9 +8,11 @@ O site e o sistema da **MP Soluções Corporativas**, numa aplicação só.
 - **Um formulário de contato com destino real** — o pedido vai para o
   PostgreSQL, com consentimento registrado e prazo de retenção que é cumprido
   por comando.
-- **Uma área com login** — o atendimento, onde a equipe da MP tria as
-  solicitações, e as tarefas da equipe: o que fazer, de quem é, para quando e
-  como está. É a área que vai crescer.
+- **Um painel com login** (`/painel/`) — as tarefas, que o mantenedor e mais
+  três pessoas compartilham no lugar de mensagens de WhatsApp; o atendimento,
+  onde a equipe da MP tria as solicitações; e as contas. Tem casca própria,
+  separada do site (ver `docs/adr/0005-area-logada-com-casca-propria.md`). É a
+  área que vai crescer.
 
 É o repositório previsto pela **fase F7** do `LEVANTAMENTO_2026-09.md`
 (repositório `manutencao`), no padrão da frota: Django, `sharedauth`, Compose,
@@ -23,9 +25,10 @@ CI, `/health`, `deploy.sh`, backup e vigia.
 | `/`, `/solucoes`, `/metodo`, `/segmentos`, `/parceiros`, `/empresa` | Páginas institucionais. Não consultam o banco. |
 | `/contato` | A página com o formulário (GET) e o recebimento (POST), na mesma rota. |
 | `/privacidade` | O aviso de privacidade, montado a partir de `contatos/privacidade.py`. |
-| `/login` → `/apos-login` | Entrada. O destino sai da conta, não de um endereço fixo. |
-| `/atendimento/` | Lista e ficha das solicitações. Exige conta com `is_staff`. |
-| `/tarefas/` | Tarefas da equipe, com responsável, prazo, situação e linha do tempo. Exige `is_staff`. |
+| `/login` → `/apos-login` | Entrada. O destino sai da conta, não de um endereço fixo. `/login` fica na raiz porque o nginx central limita `POST /login`. |
+| `/painel/tarefas/` | Tarefas, com responsável, prazo, situação e linha do tempo. Exige sessão (`login_required`). |
+| `/painel/atendimento/` | Lista e ficha das solicitações, com responsável e reatribuição. Exige `is_staff`. |
+| `/painel/contas/` | Cria e edita as contas do portal. Exige `is_staff`. |
 | `/health` | Sonda que consulta o banco. Contrato comum aos aplicativos da frota. |
 | `/robots.txt`, `/sitemap.xml` | Gerados da mesma tabela que monta o menu. |
 

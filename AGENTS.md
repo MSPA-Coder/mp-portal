@@ -69,17 +69,23 @@ levantamento).
 - **`django.contrib.admin` não entra.** Registraria o modelo de usuário e
   abriria um segundo login, fora do `/login` que o nginx central limita.
 - **Destino pós-login é derivado da conta** (`contas/views.py`), nunca fixo. É a
-  emenda por onde a área do cliente entra — ver ADR 0002.
-- **Quem entra na área interna é `is_staff`**, e a regra mora em UM lugar:
-  `core/autorizacao.somente_equipe`. Não recrie o decorador dentro de um app, e
-  não troque o critério por "autenticado" — a conta de cliente que o ADR 0002
-  prevê também será autenticada.
-- **No menu, `Login` é para quem não entrou** e as áreas internas são para quem
-  entrou (`templates/site/_topo.html`). Mostrar "Login" a quem já tem sessão
+  emenda por onde a área do cliente externo entra — ver ADR 0002.
+- **A área logada tem casca própria** (`templates/app/base.html`), separada da
+  do site, e vive sob `/painel/` — ADR 0005. Rota interna nova entra sob esse
+  prefixo, e nunca na casca do site.
+- **Duas fronteiras de autorização, e cada regra num lugar só:**
+  `/painel/tarefas/` é `login_required` (as quatro pessoas do círculo
+  compartilham o quadro); `/painel/atendimento/` e `/painel/contas/` são
+  `is_staff`, por `core/autorizacao.somente_equipe`. `is_staff` significa
+  "administra o portal", não "é da equipe" — a conta de cliente externo do
+  ADR 0002 ainda não existe. Não recrie o decorador dentro de um app.
+- **No menu do site, `Login` é para quem não entrou** e `Painel` para quem
+  entrou (`templates/site/_topo.html`) — as áreas do sistema ficam na barra da
+  casca logada, não no menu do site. Mostrar "Login" a quem já tem sessão
   sugere que ela caiu — a mesma razão pela qual o 403 do atendimento não
   devolve ninguém à tela de login.
-- **Rota nova sob sessão entra no `robots.txt`.** Toda área autenticada é
-  `Disallow`; para o robô, cada visita vira um desvio para o login.
+- **`/painel/` inteiro é `Disallow` no `robots.txt`** — uma linha fecha a área
+  autenticada; para o robô, cada visita vira um desvio para o login.
 - **Em `tarefas`, `situacao` e `concluida_em` mudam juntas**, pelo
   `Tarefa.aplicar_situacao`. A restrição `tarefa_conclusao_coerente` recusa a
   divergência no banco — não escreva `situacao` direto.
