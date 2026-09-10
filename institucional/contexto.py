@@ -1,9 +1,11 @@
-"""Contexto compartilhado por toda resposta HTML.
+"""Contexto compartilhado pelas telas que usam a casca do site.
 
-O menu precisa existir na tela de login e na area de atendimento tanto quanto
-nas paginas institucionais -- e uma casca so foi o motivo de incorporar o site
-ao portal. Um processador de contexto entrega a lista de paginas a todas as
-views sem que cada uma precise lembrar de passa-la.
+O menu institucional aparece nas sete paginas publicas e na tela de login, e
+todas saem da mesma tabela (`institucional/paginas.py`). Um processador de
+contexto entrega essa lista sem que cada view precise lembrar de passa-la.
+
+A area logada tem casca propria desde a ADR 0005 e nao consome `paginas` -- o
+processador roda para toda resposta, mas ali a variavel so fica sem uso.
 """
 
 from __future__ import annotations

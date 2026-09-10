@@ -102,7 +102,9 @@ variável preenchida, e o aviso de privacidade a publica. Um alias encaminhado
 ### Médio — o aviso de chegada
 
 Quando uma solicitação entra, nada avisa ninguém: fica na lista até alguém
-abrir `/atendimento/`. A solução não é `EmailBackend` no contêiner (`read_only`,
+abrir `/painel/atendimento/`. A ADR 0005 (fase 5) deu **dono** a cada
+solicitação — cai numa caixa de entrada designada —, mas não resolve o aviso:
+ninguém é notificado. A solução não é `EmailBackend` no contêiner (`read_only`,
 sem token do Telegram, e não deveria ter). O caminho da frota é um script no
 host, com timer, que consulta o portal e chama o `alerta.sh` quando houver
 solicitação nova.

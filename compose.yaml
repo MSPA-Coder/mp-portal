@@ -129,9 +129,6 @@ services:
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
       DEBUG: ${DEBUG:-False}
       USE_HTTPS: ${USE_HTTPS:-False}
-      # Quem pode enviar `POST /contato`. Vazio recusa tudo fora do modo de
-      # depuracao, de proposito -- ver `contatos/origens.py`.
-      CONTATO_ORIGENS_PERMITIDAS: ${CONTATO_ORIGENS_PERMITIDAS:-}
       CONTATO_PROXIES_CONFIAVEIS: ${CONTATO_PROXIES_CONFIAVEIS:-}
       CONTATO_CANAL_TITULAR: ${CONTATO_CANAL_TITULAR:-}
       CONTATO_RETENCAO_DIAS: ${CONTATO_RETENCAO_DIAS:-730}

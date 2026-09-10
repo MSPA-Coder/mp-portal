@@ -14,9 +14,9 @@ biblioteca arrastaria o framework para dentro dela.
 NOTA sobre `Vary`: o ControleBancario declara `Vary: HX-Request, HX-Target`
 porque uma tela e o fragmento que a atualiza compartilham a URL. Este projeto
 nao usa HTMX e nenhuma URL daqui responde corpos diferentes conforme cabecalho
-de apresentacao, entao a tupla nao se aplica. A rota de contato varia por
-`Origin`, e quem declara isso e a propria view, na resposta em que o cabecalho
-de CORS aparece.
+de apresentacao, entao a tupla nao se aplica. A rota de contato tambem nao
+varia por `Origin`: desde a incorporacao do site ao portal (ADR 0003) ela e de
+mesma origem e nao emite cabecalho de CORS nenhum -- quem a protege e o CSRF.
 """
 
 from __future__ import annotations

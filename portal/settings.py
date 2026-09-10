@@ -53,12 +53,13 @@ INSTALLED_APPS = [
     # usuario automaticamente, entao uma conta `is_staff` editaria contas,
     # senhas e o proprio `is_superuser` por fora de qualquer trava, e
     # `/admin/login/` autenticaria senha por um caminho que nao e o `/login`
-    # limitado pelo nginx central. A area administrativa deste projeto e a de
-    # `contatos`, com autorizacao explicita e um conjunto de acoes fechado.
+    # limitado pelo nginx central.
     #
-    # Consequencia pratica: contas sao criadas por `manage.py createsuperuser`
-    # e a senha e trocada por `manage.py changepassword`, nao por tela. Os dois
-    # comandos vem de `django.contrib.auth` e nao dependem do admin.
+    # A administracao deste projeto e feita por telas proprias, com autorizacao
+    # explicita e um conjunto de acoes fechado: o CRUD de contas em
+    # `/painel/contas/` (ADR 0005) e a triagem de contatos em
+    # `/painel/atendimento/`. `createsuperuser`/`changepassword` continuam
+    # valendo para a primeira conta e para emergencia.
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

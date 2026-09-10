@@ -103,6 +103,7 @@ known-first-party = [
     "contas",
     "contatos",
     "institucional",
+    "tarefas",
     "tests",
 ]
 
