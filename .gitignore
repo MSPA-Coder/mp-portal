@@ -68,6 +68,14 @@ logs/*
 # Sistema operacional
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Dropbox: o repositorio vive numa pasta sincronizada. `.dropboxignore` (o que
+# o Dropbox NAO sincroniza, incluindo `.git`) e versionado; os metadados que o
+# Dropbox espalha, nao.
+.dropbox
+.dropbox.attr
+.dropbox.cache
 
 # Logs
 *.log

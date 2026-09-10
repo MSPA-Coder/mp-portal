@@ -1,0 +1,47 @@
+# O que o Dropbox NAO deve sincronizar neste repositorio.
+# Sintaxe estilo .gitignore (sem `!` de negacao). Cada linha e um padrao
+# relativo a esta pasta.
+#
+# O repositorio de verdade e o GitHub (MSPA-Coder/mp-portal). O Dropbox aqui e
+# so conveniencia de edicao -- nao precisa carregar o historico do git nem os
+# artefatos que se regeram sozinhos.
+
+# Historia do git: churn a cada commit, e o GitHub ja e a copia autoritativa.
+.git
+
+# Segredos e certificados locais: nunca vao para a nuvem.
+# (os `.env.*.example`, versionados, continuam sincronizando)
+.env
+.env.docker
+.env.vps
+.env.local
+.secrets
+.certs
+
+# Ambientes e caches de ferramenta: regeram sozinhos.
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+.ruff_cache
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# Artefatos de build/runtime.
+staticfiles
+build
+dist
+*.egg-info
+logs
+
+# Ferramentas de agente.
+.claude
+.codex
+.agents
+
+# Sistema operacional.
+.DS_Store
+Thumbs.db
