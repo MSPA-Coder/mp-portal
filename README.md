@@ -43,9 +43,12 @@ CI, `/health`, `deploy.sh`, backup e vigia.
 - **Dados de contato reais.** Telefone e e-mail continuam mascarados com
   asteriscos, por decisão registrada (achado L16): publicar contato falso é
   pior que não publicar.
-- **Publicação no VPS.** O portal não está no ar, e o site estático continua
-  sendo o que atende em produção. A virada é um passo próprio, descrito em
-  [`docs/operacao.md`](docs/operacao.md).
+- **Timer do expurgo.** O portal **está no ar** em `mp-solucoes.duckdns.org`
+  desde 10/09/2026 (a virada substituiu o site estático). O que ficou pendente
+  da publicação, e agora é o primeiro item, é automatizar
+  `manage.py expurgar_contatos` no host — sem ele, o prazo de retenção do aviso
+  de privacidade é promessa que ninguém cumpre. Este e os outros pendentes
+  estão em [`docs/operacao.md`](docs/operacao.md).
 
 ## Rodar localmente
 

@@ -1,139 +1,120 @@
-# Operação: a virada, e o que ela aciona
+# Operação: a virada (feita em 10/09/2026) e o que ficou aberto
 
-O portal **não está publicado**. Em produção, quem atende
-`mp-solucoes.duckdns.org` hoje é o site estático (contêiner nginx, porta 5501)
-que roda no VPS. Publicar este repositório não é instalar um serviço novo: é
-**substituir um serviço que está no ar**.
+O portal **está publicado**. Desde 10/09/2026, quem atende
+`mp-solucoes.duckdns.org` é esta aplicação Django (contêiner `mp-portal-web-1`,
+porta 5601), no lugar do site estático (porta 5501) que servia antes. A virada
+foi uma **substituição de serviço no ar**: mesmo domínio, mesmo certificado, o
+`proxy_pass` do vhost apontando para a porta nova.
 
-O repositório de origem daquele site (`mp-solucoes`, no GitHub, e a pasta local
-`MpSolucoes`) foi **removido em 10/09/2026**. O histórico da F5 está preservado
-no bundle `mp-solucoes-f5-arquivo.bundle` (em `Dropbox/Programacao/`); a cópia
-que serve produção é a que está no servidor. Enquanto a virada não acontece, um
-defeito de infra que derrube esse contêiner só se resolve pelo bundle ou pelo
-próprio VPS.
+O repositório de origem do site antigo (`mp-solucoes`, no GitHub, e a pasta
+local `MpSolucoes`) foi removido em 10/09/2026; a F5 está no bundle
+`mp-solucoes-f5-arquivo.bundle` (em `Dropbox/Programacao/`).
 
-Este documento é a lista do que falta, na ordem, para que o dia da virada seja
-uma execução e não uma redescoberta.
+Este documento deixou de ser uma lista de preparação e passou a registrar **o
+que foi feito** e **o que ficou aberto**.
 
-## 0. Antes de qualquer coisa: duas decisões voltam à mesa
+## O que a virada executou
 
-A §6 do `LEVANTAMENTO_2026-09.md` registra cinco riscos aceitos, cada um com o
-gatilho que deve fazer a decisão ser revisitada. **A virada dispara duas.**
+| Passo | Estado |
+|---|---|
+| Clone de `mp-portal` em `~/apps/mp-portal` no VPS, com chave de deploy própria (`deploy_portal`) | ✅ |
+| `.env.vps` + `.secrets/{django_secret_key,postgres_password}` + `.certs/local-root-ca.crt` | ✅ |
+| `docker compose up -d --build`: imagem construída, migrações aplicadas, `postgres`+`web` `healthy` | ✅ |
+| `manutencao` PR #25: `deploy.sh` verbo `portal`, vhost `portal` no lugar de `mp-solucoes`, `mp_portal` no `backup-db.sh` | ✅ mesclado |
+| `vps/instalar.sh` e `instalar-nginx.sh` no servidor | ✅ |
+| Troca do symlink `sites-enabled`: `portal` entra, `mp-solucoes` sai, `nginx -t` + reload | ✅ |
+| Verificação pública (ver §"Verificação" abaixo) | ✅ |
+| `mp-solucoes-web-1` parado e removido; `~/apps/mp-solucoes` e o vhost órfão apagados; imagem podada | ✅ |
+| Primeiro backup de `mp_portal`, relido com `pg_restore --list` | ✅ |
+| Superusuário `Mariano` no banco de produção | ✅ |
 
-| Achado | O que estava aceito | Por que dispara agora |
-|---|---|---|
-| **L06** — RTO nunca medido | Sabe-se que o dump restaura; não se sabe em quanto tempo o ambiente inteiro volta. | O gatilho é literal: *"antes de o portal do cliente entrar no ar"*. E agora vale mais: depois da incorporação, **o site institucional cai junto com a aplicação**. Um site fora do ar é cliente que não chega. |
-| **L19** — DuckDNS | Sufixo compartilhado, sem autoridade de domínio, sem e-mail corporativo. | O domínio próprio já está a caminho. Ele destrava o e-mail no domínio (encaminhamento gratuito resolve) e o canal do titular exigido pela LGPD, que hoje não tem endereço. |
+Detalhes que divergiram do previsto, para quem repetir o padrão noutro app:
 
-O achado **L11** (o repositório `mp-solucoes` sem branch protection) deixou de
-ter objeto: o repositório foi removido em 10/09/2026. O que dele importa daqui
-pra frente é a proteção da `main` **deste** repositório, cujo defeito derruba o
-site **e** vaza dado pessoal de terceiro.
+- **O env do servidor é `.env.vps`**, não `.env.docker` — é o nome que o
+  `deploy.sh` da frota lê. O `.env.docker.example` continua valendo como guia;
+  o arquivo servido chama-se `.env.vps` (há um `.env.vps.example` no repo).
+- **Permissão dos segredos**: `postgres_password` precisa ser legível pelo uid
+  70 (`chmod 444`); `django_secret_key` pertence ao uid 999 (`app` da imagem)
+  em modo `400`. Segredo `0600 ubuntu:ubuntu` faz o contêiner morrer no
+  arranque.
+- **`ALLOWED_HOSTS` precisa de `localhost,127.0.0.1`** além do domínio: o
+  healthcheck do Compose bate em `127.0.0.1:8000/health`, e sem isso o Django
+  responde 400 e o contêiner nunca fica `healthy`.
+- **`CONTATO_PROXIES_CONFIAVEIS=172.16.0.0/12`** cobre o gateway da rede do
+  Compose (`172.23.0.1` hoje), que é o que o contêiner vê como `REMOTE_ADDR`.
 
-## 1. Medir o RTO antes (L06)
+## Verificação feita na virada
 
-Não é burocracia: a incorporação transferiu o site institucional para dentro de
-uma aplicação com banco. Antes da virada, vale saber quanto tempo leva para
-reconstruir o ambiente do zero e se o `KIT_RECUPERACAO.md` está correto. É a
-diferença entre "o site voltou em 20 minutos" e "o site voltou quando deu".
+- as sete páginas institucionais em 200, `/contato` e `/privacidade` em 200, os
+  `.html` antigos em 301;
+- `POST /contato` com token CSRF → 303 para `/contato/recebido`, registro no
+  banco (`Contato`), e o de teste apagado depois;
+- `POST /contato` sem token CSRF → 403;
+- `/atendimento/` e `/tarefas/` sem sessão → 302 para `/login`;
+- `robots.txt` e `sitemap.xml` com `mp-solucoes.duckdns.org` **derivado do
+  request**, sem o domínio escrito em arquivo — a propriedade da F5 sobreviveu;
+- `http://` → 301 `https://`; HSTS presente;
+- `/health` → `{"servico": "mp-portal", "status": "ok"}` no `vigia.sh --estado`
+  e no `deploy.sh --status`;
+- backup de `mp_portal` no ciclo diário, relido com `pg_restore --list`.
 
-## 2. Infraestrutura no repositório `manutencao`
+## O que ficou aberto
 
-Editar `vps/` lá **não implanta nada** — a cópia do servidor é a que roda.
-Depois de mudar: `bash vps/instalar.sh` no VPS e conferir com `--check`.
+### Alto — a retenção do aviso de privacidade é promessa
 
-- **vhost**: o host público passa a apontar para `127.0.0.1:5601` em vez de
-  `:5501`. O limite de taxa de `POST /login` do `conf.d/00-comum.conf` já pega o
-  portal de graça — a rota chama `/login` exatamente por isso.
-- **`deploy.sh`**: verbo `portal` entra; o verbo `mp` sai **depois** de a virada
-  estar verificada, não antes — enquanto os dois existirem, voltar atrás é
-  trocar uma linha do vhost.
-- **`backup-db.sh`**: o banco `mp_portal` entra no ciclo diário. É o primeiro
-  banco da frota com dado pessoal de terceiro; vale reler a retenção dos dumps
-  à luz disso.
-- **`vigia.sh`** e **`uptimerobot-monitores.sh`**: o `/health` do portal entra;
-  o do site sai junto com o serviço.
-- **sentinela** e **autocura** cobrem o portal sem mudança nenhuma.
-- **timer do expurgo**: `manage.py expurgar_contatos` precisa rodar sozinho, ou
-  o prazo declarado no aviso de privacidade é promessa que ninguém cumpre.
-  Diário, no formato dos outros timers.
+**O timer do expurgo não existe.** `manage.py expurgar_contatos` aplica o prazo
+que o aviso de privacidade publica (`CONTATO_RETENCAO_DIAS`, 730), e hoje
+ninguém o executa. Enquanto não houver timer no host — diário, no formato dos
+outros da frota (`manutencao/vps/`) — o prazo declarado é letra morta. É o
+primeiro item.
 
-## 3. Segredos e variáveis no VPS
+### Alto — riscos aceitos que a virada disparou (LEVANTAMENTO §6)
 
-Dois arquivos em `.secrets/` (`django_secret_key`, `postgres_password`) e, no
-`.env.docker`:
+- **L06 — RTO nunca medido.** O gatilho era literal: *"antes de o portal do
+  cliente entrar no ar"*. O portal entrou. Falta medir quanto tempo o ambiente
+  inteiro leva para voltar do zero, e conferir o `KIT_RECUPERACAO.md`. Agora
+  pesa mais: o site institucional cai junto com a aplicação.
+- **L19 — DuckDNS.** Sufixo compartilhado, sem autoridade de domínio, sem
+  e-mail no domínio. A virada foi feita **mantendo** `mp-solucoes.duckdns.org`
+  por decisão do mantenedor; a troca de domínio é um passo próprio, e destrava
+  o e-mail (inclusive o canal do titular abaixo).
 
-```
-USE_HTTPS=True
-ALLOWED_HOSTS=<host público>
-CSRF_TRUSTED_ORIGINS=https://<host público>
-CONTATO_PROXIES_CONFIAVEIS=<rede do nginx central>
-CONTATO_CANAL_TITULAR=<endereço para o titular>
-```
+### Alto — o achado L11 mudou de repositório
 
-Com `USE_HTTPS=True` e o canal ausente, **a aplicação recusa subir**. É
-deliberado: um aviso de privacidade que promete um canal inexistente é pior que
-não ter aviso.
+`main` do `mp-portal` sem branch protection. O achado L11 valia para o
+`mp-solucoes` (removido) e migrou para cá **disparado**: o defeito nesta `main`
+derruba o site institucional **e** vaza dado pessoal de terceiro. Plano
+gratuito não tem ruleset em repo privado — reavaliar com o domínio/plano.
 
-`CONTATO_PROXIES_CONFIAVEIS` importa mais do que parece: sem ela, o limite de
-envios conta todo o tráfego como vindo do nginx central — um só balde para
-todos os visitantes.
+### Médio — dados de contato ainda mascarados (L16)
 
-## 4. O que **não** é mais necessário
+Telefone, WhatsApp e e-mail comercial continuam com asteriscos em
+`templates/site/_rodape.html` e `templates/site/contato.html`. Publicar contato
+falso é pior que não publicar — então o site está no ar sem eles.
 
-Estas tarefas existiam enquanto o site e o portal eram dois. A incorporação as
-eliminou, e ficam registradas para que ninguém as procure:
+### Médio — canal do titular é placeholder
+
+`CONTATO_CANAL_TITULAR=privacidade@mp-solucoes.duckdns.org` no `.env.vps`. É um
+endereço **não funcional** (DuckDNS não faz e-mail); a aplicação exige a
+variável preenchida, e o aviso de privacidade a publica. Um alias encaminhado
+(`privacidade@`) no domínio próprio resolve sem custo — depende de L19.
+
+### Médio — o aviso de chegada
+
+Quando uma solicitação entra, nada avisa ninguém: fica na lista até alguém
+abrir `/atendimento/`. A solução não é `EmailBackend` no contêiner (`read_only`,
+sem token do Telegram, e não deveria ter). O caminho da frota é um script no
+host, com timer, que consulta o portal e chama o `alerta.sh` quando houver
+solicitação nova.
+
+## O que **não** é mais necessário
+
+Tarefas que existiam enquanto o site e o portal eram dois, e a incorporação
+eliminou — ficam registradas para que ninguém as procure:
 
 - ligar o formulário do site ao endpoint do portal;
-- renomear campos do formulário no outro repositório;
-- afrouxar `form-action` ou `connect-src` na CSP do site;
-- configurar lista de origens, CORS e pré-voo.
-
-O "outro repositório" citado acima nem existe mais — foi removido em 10/09/2026.
-
-## 5. Dados que faltam antes de divulgar
-
-- **Telefone, WhatsApp e e-mail comercial reais**, hoje mascarados com
-  asteriscos em `templates/site/_rodape.html` e `templates/site/contato.html`
-  (achado L16). Publicar contato falso é pior que não publicar.
-- **Canal do titular** para o aviso de privacidade. Com o domínio próprio, um
-  alias encaminhado (`privacidade@`) resolve sem custo mensal.
-
-## 6. O aviso de chegada
-
-Quando uma solicitação entra, **nada avisa ninguém** — ela fica na lista até
-alguém abrir. É conhecido, e a solução não é um `EmailBackend` dentro do
-contêiner: pela mesma razão da fase F4, ele é `read_only`, não tem o token do
-Telegram e não deveria ter.
-
-O caminho que combina com a frota é o do sentinela: um script no host, com
-timer, que consulta o portal (por um comando `manage.py` ou rota interna) e
-chama o `alerta.sh` quando houver solicitação nova. É o primeiro item depois da
-publicação.
-
-## 7. Verificação depois da virada
-
-- as sete páginas institucionais em 200, e os seis `.html` em 301;
-- `/contato` mostrando o formulário, e um envio real chegando à lista;
-- um envio sem token CSRF recusado;
-- `/privacidade` acessível pelo rodapé, com o canal do titular preenchido;
-- `/atendimento/` e `/tarefas/` pedindo login para quem não tem sessão, e o
-  menu do visitante oferecendo **Login** e nenhuma área interna;
-- `robots.txt` e `sitemap.xml` com o **domínio novo**, sem nenhuma edição no
-  repositório — é a prova de que a propriedade da F5 sobreviveu;
-- `/health` no vigia e no monitor externo;
-- o backup do banco `mp_portal` no ciclo diário, relido com `pg_restore --list`;
-- `manage.py expurgar_contatos --simular` no servidor.
-
-## 8. Depois de tudo verificado
-
-O repositório `mp-solucoes` já saiu (GitHub e cópia local, em 10/09/2026; a F5
-está no bundle `mp-solucoes-f5-arquivo.bundle`). O que resta é **no VPS e no
-`manutencao`**, e só depois da virada verificada:
-
-- remover o verbo `mp` do `vps/deploy.sh`;
-- tirar o vhost `mp-solucoes` (`vps/nginx/`) e a linha correspondente do
-  `vps/nginx/instalar.sh`;
-- tirar `mp-solucoes.duckdns.org` do `vps/vigia.sh` e do
-  `vps/uptimerobot-monitores.sh`;
-- parar e podar o contêiner e a imagem do site estático no servidor.
+- renomear campos do formulário no outro repositório (que nem existe mais);
+- afrouxar `form-action` / `connect-src` na CSP do site;
+- configurar lista de origens, CORS e pré-voo;
+- manter o verbo `mp` / vhost `mp-solucoes` / contêiner do site estático — tudo
+  removido na virada.
