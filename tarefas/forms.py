@@ -6,9 +6,9 @@ endereco); aqui quem preenche ja esta autenticado e os campos sao exatamente as
 colunas. Repetir a declaracao a mao so criaria uma segunda fonte para
 `max_length`.
 
-O responsavel e escolhido entre as contas da equipe ATIVAS. Quem saiu continua
-dono das tarefas antigas -- e o historico --, mas nao aparece mais como destino
-de tarefa nova.
+O responsavel e escolhido entre as contas ATIVAS -- as quatro pessoas do
+circulo (ADR 0005), e nao so as `is_staff`. Quem saiu continua dono das tarefas
+antigas -- e o historico --, mas nao aparece mais como destino de tarefa nova.
 """
 
 from __future__ import annotations
@@ -25,9 +25,14 @@ MENSAGENS = {
 }
 
 
-def equipe():
-    """Contas que podem receber tarefa: da equipe e em uso."""
-    return get_user_model().objects.filter(is_staff=True, is_active=True).order_by(
+def pessoas():
+    """Contas que podem receber tarefa: qualquer conta ativa do portal.
+
+    Deixou de filtrar `is_staff` na ADR 0005 -- as tarefas sao o espaco
+    compartilhado do circulo, e o cliente que a marca separava era o cliente
+    externo do ADR 0002, que continua sem existir.
+    """
+    return get_user_model().objects.filter(is_active=True).order_by(
         "first_name", "username"
     )
 
@@ -53,7 +58,7 @@ class TarefaForm(forms.ModelForm):
     # reposto no `__init__` para que uma conta criada depois da importacao do
     # modulo apareca na lista.
     responsavel = SelecaoDeResponsavel(
-        queryset=equipe(),
+        queryset=pessoas(),
         label="responsável",
         empty_label=None,
         error_messages={"required": MENSAGENS["responsavel"]},
@@ -74,7 +79,7 @@ class TarefaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["responsavel"].queryset = equipe()
+        self.fields["responsavel"].queryset = pessoas()
         self.fields["prioridade"].choices = Prioridade.choices
         # `DateInput` com `type=date` so mostra o valor existente se ele chegar
         # no formato que o campo do navegador entende.

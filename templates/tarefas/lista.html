@@ -6,7 +6,7 @@
 <section class="cartao">
   <div class="cartao-topo">
     <div>
-      <h1>Tarefas da equipe</h1>
+      <h1>Tarefas</h1>
       <p class="discreto">{{ total }} tarefa(s) no recorte atual.</p>
     </div>
     <a href="{% url 'tarefa_nova' %}" class="botao">Nova tarefa</a>
@@ -18,7 +18,7 @@
     consulta que a lista já faz.
   {% endcomment %}
   <div class="placar">
-    {% for pessoa in equipe %}
+    {% for pessoa in pessoas %}
       <a class="placar-item{% if de_quem == pessoa.pk|stringformat:'s' %} placar-ativo{% endif %}"
          href="?situacao={{ filtro }}&amp;responsavel={{ pessoa.pk }}">
         <span class="placar-numero">{{ pessoa.abertas }}</span>

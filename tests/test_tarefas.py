@@ -35,30 +35,39 @@ def tarefa(atendente) -> Tarefa:
 
 
 def test_anonimo_vai_para_o_login(client, tarefa):
-    resposta = client.get("/tarefas/")
+    resposta = client.get("/painel/tarefas/")
 
     assert resposta.status_code == 302
     assert resposta["Location"].startswith("/login")
-    assert "next=/tarefas/" in resposta["Location"]
+    assert "next=/painel/tarefas/" in resposta["Location"]
 
 
-def test_conta_sem_is_staff_recebe_403_em_toda_a_area(client, pessoa_sem_acesso, tarefa):
-    """A conta de cliente do ADR 0002 tambem sera autenticada."""
+def test_conta_comum_do_circulo_usa_a_area_de_tarefas(client, pessoa_sem_acesso, tarefa):
+    """Desde a ADR 0005 as tarefas sao `login_required`, nao `is_staff`.
+
+    `pessoa_sem_acesso` -- uma conta sem `is_staff` -- e agora uma das quatro
+    pessoas do circulo: ve a lista, abre a ficha, cria e mexe. O `is_staff`
+    passou a guardar so a administracao (atendimento, contas).
+    """
     client.force_login(pessoa_sem_acesso)
 
-    assert client.get("/tarefas/").status_code == 403
-    assert client.get(f"/tarefas/{tarefa.pk}/").status_code == 403
-    assert client.get("/tarefas/nova").status_code == 403
-    assert client.get(f"/tarefas/{tarefa.pk}/editar").status_code == 403
-    assert client.post(f"/tarefas/{tarefa.pk}/situacao", {"situacao": "concluida"}).status_code == 403
-    assert client.post(f"/tarefas/{tarefa.pk}/andamento", {"texto": "oi"}).status_code == 403
+    assert client.get("/painel/tarefas/").status_code == 200
+    assert client.get(f"/painel/tarefas/{tarefa.pk}/").status_code == 200
+    assert client.get("/painel/tarefas/nova").status_code == 200
+    assert client.get(f"/painel/tarefas/{tarefa.pk}/editar").status_code == 200
+    assert client.post(
+        f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": "concluida"}
+    ).status_code == 302
+    assert client.post(
+        f"/painel/tarefas/{tarefa.pk}/andamento", {"texto": "oi"}
+    ).status_code == 302
 
 
 def test_equipe_ve_a_lista_e_a_ficha(client, atendente, tarefa):
     client.force_login(atendente)
 
-    lista = client.get("/tarefas/")
-    ficha = client.get(f"/tarefas/{tarefa.pk}/")
+    lista = client.get("/painel/tarefas/")
+    ficha = client.get(f"/painel/tarefas/{tarefa.pk}/")
 
     assert lista.status_code == 200
     assert "Renovar contrato" in lista.content.decode("utf-8")
@@ -128,12 +137,12 @@ def test_concluir_preenche_a_data_e_reabrir_a_limpa(client, atendente, tarefa):
     """O metodo `aplicar_situacao` e o unico caminho, e a restricao cobra isso."""
     client.force_login(atendente)
 
-    client.post(f"/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.CONCLUIDA})
+    client.post(f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.CONCLUIDA})
     tarefa.refresh_from_db()
     assert tarefa.situacao == Situacao.CONCLUIDA
     assert tarefa.concluida_em is not None
 
-    client.post(f"/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.EM_ANDAMENTO})
+    client.post(f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.EM_ANDAMENTO})
     tarefa.refresh_from_db()
     assert tarefa.situacao == Situacao.EM_ANDAMENTO
     assert tarefa.concluida_em is None
@@ -142,7 +151,7 @@ def test_concluir_preenche_a_data_e_reabrir_a_limpa(client, atendente, tarefa):
 def test_mudanca_de_situacao_vira_linha_de_andamento(client, atendente, tarefa):
     client.force_login(atendente)
 
-    client.post(f"/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.EM_ANDAMENTO})
+    client.post(f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.EM_ANDAMENTO})
 
     andamento = tarefa.andamentos.get()
     assert andamento.automatico is True
@@ -154,7 +163,7 @@ def test_situacao_repetida_nao_gera_andamento(client, atendente, tarefa):
     """Salvar sem mudar nada nao deve encher a linha do tempo de ruido."""
     client.force_login(atendente)
 
-    client.post(f"/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.A_FAZER})
+    client.post(f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.A_FAZER})
 
     assert tarefa.andamentos.count() == 0
 
@@ -162,7 +171,7 @@ def test_situacao_repetida_nao_gera_andamento(client, atendente, tarefa):
 def test_situacao_desconhecida_e_recusada_pela_view(client, atendente, tarefa):
     client.force_login(atendente)
 
-    resposta = client.post(f"/tarefas/{tarefa.pk}/situacao", {"situacao": "arquivada"})
+    resposta = client.post(f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": "arquivada"})
     tarefa.refresh_from_db()
 
     assert resposta.status_code == 403
@@ -172,14 +181,14 @@ def test_situacao_desconhecida_e_recusada_pela_view(client, atendente, tarefa):
 def test_triagem_nao_acontece_por_get(client, atendente, tarefa):
     client.force_login(atendente)
 
-    assert client.get(f"/tarefas/{tarefa.pk}/situacao").status_code == 405
+    assert client.get(f"/painel/tarefas/{tarefa.pk}/situacao").status_code == 405
 
 
 def test_mudanca_sem_token_csrf_e_recusada(client_com_csrf, atendente, tarefa):
     client_com_csrf.force_login(atendente)
 
     resposta = client_com_csrf.post(
-        f"/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.CONCLUIDA}
+        f"/painel/tarefas/{tarefa.pk}/situacao", {"situacao": Situacao.CONCLUIDA}
     )
     tarefa.refresh_from_db()
 
@@ -196,7 +205,7 @@ def test_criar_tarefa_grava_e_registra_quem_criou(client, atendente):
     client.force_login(atendente)
 
     resposta = client.post(
-        "/tarefas/nova",
+        "/painel/tarefas/nova",
         {
             "titulo": "Trocar as cameras da portaria",
             "descricao": "Duas unidades sem imagem.",
@@ -208,7 +217,7 @@ def test_criar_tarefa_grava_e_registra_quem_criou(client, atendente):
 
     tarefa = Tarefa.objects.get(titulo="Trocar as cameras da portaria")
     assert resposta.status_code == 302
-    assert resposta["Location"] == f"/tarefas/{tarefa.pk}/"
+    assert resposta["Location"] == f"/painel/tarefas/{tarefa.pk}/"
     assert tarefa.criado_por == atendente
     assert tarefa.prazo == dt.date(2026, 10, 15)
     assert tarefa.prioridade == Prioridade.ALTA
@@ -219,7 +228,7 @@ def test_tarefa_sem_titulo_nao_e_criada(client, atendente):
     client.force_login(atendente)
 
     resposta = client.post(
-        "/tarefas/nova",
+        "/painel/tarefas/nova",
         {"titulo": "   ", "responsavel": atendente.pk, "prioridade": Prioridade.NORMAL},
     )
 
@@ -227,15 +236,35 @@ def test_tarefa_sem_titulo_nao_e_criada(client, atendente):
     assert Tarefa.objects.count() == 0
 
 
-def test_conta_sem_is_staff_nao_pode_ser_responsavel(client, atendente, pessoa_sem_acesso):
-    """O seletor lista so a equipe; enviar outro id nao pode contornar isso."""
+def test_qualquer_conta_ativa_pode_ser_responsavel(client, atendente, pessoa_sem_acesso):
+    """Desde a ADR 0005 o seletor lista toda conta ativa, nao so `is_staff`."""
     client.force_login(atendente)
 
     resposta = client.post(
-        "/tarefas/nova",
+        "/painel/tarefas/nova",
         {
-            "titulo": "Tarefa para quem nao e da equipe",
+            "titulo": "Tarefa para outra pessoa do circulo",
             "responsavel": pessoa_sem_acesso.pk,
+            "prioridade": Prioridade.NORMAL,
+        },
+    )
+
+    assert resposta.status_code == 302
+    assert Tarefa.objects.filter(responsavel=pessoa_sem_acesso).count() == 1
+
+
+def test_conta_inativa_nao_pode_ser_responsavel(client, atendente, django_user_model):
+    """Quem saiu (sem `is_active`) continua dono do historico, mas nao recebe tarefa nova."""
+    saiu = django_user_model.objects.create_user(
+        username="ex-colega", password="senha-de-teste-longa-2026", is_active=False
+    )
+    client.force_login(atendente)
+
+    resposta = client.post(
+        "/painel/tarefas/nova",
+        {
+            "titulo": "Tarefa para quem ja saiu",
+            "responsavel": saiu.pk,
             "prioridade": Prioridade.NORMAL,
         },
     )
@@ -248,7 +277,7 @@ def test_andamento_registra_autor_e_nao_e_automatico(client, atendente, tarefa):
     client.force_login(atendente)
 
     resposta = client.post(
-        f"/tarefas/{tarefa.pk}/andamento",
+        f"/painel/tarefas/{tarefa.pk}/andamento",
         {"texto": "Fornecedor respondeu, proposta na sexta."},
     )
 
@@ -262,7 +291,7 @@ def test_andamento_registra_autor_e_nao_e_automatico(client, atendente, tarefa):
 def test_andamento_vazio_volta_para_a_ficha_sem_gravar(client, atendente, tarefa):
     client.force_login(atendente)
 
-    resposta = client.post(f"/tarefas/{tarefa.pk}/andamento", {"texto": "   "})
+    resposta = client.post(f"/painel/tarefas/{tarefa.pk}/andamento", {"texto": "   "})
 
     assert resposta.status_code == 400
     assert Andamento.objects.count() == 0
@@ -275,7 +304,7 @@ def test_troca_de_responsavel_fica_escrita(client, atendente, tarefa, django_use
     client.force_login(atendente)
 
     client.post(
-        f"/tarefas/{tarefa.pk}/editar",
+        f"/painel/tarefas/{tarefa.pk}/editar",
         {
             "titulo": tarefa.titulo,
             "descricao": tarefa.descricao,
@@ -301,7 +330,7 @@ def test_lista_esconde_concluidas_por_padrao_mas_diz_que_esconde(client, atenden
     tarefa.save()
     client.force_login(atendente)
 
-    corpo = client.get("/tarefas/").content.decode("utf-8")
+    corpo = client.get("/painel/tarefas/").content.decode("utf-8")
 
     assert "Renovar contrato" not in corpo
     assert 'value="abertas" selected' in corpo
@@ -312,7 +341,7 @@ def test_filtro_todas_mostra_a_concluida(client, atendente, tarefa):
     tarefa.save()
     client.force_login(atendente)
 
-    corpo = client.get("/tarefas/?situacao=todas").content.decode("utf-8")
+    corpo = client.get("/painel/tarefas/?situacao=todas").content.decode("utf-8")
 
     assert "Renovar contrato" in corpo
 
@@ -320,7 +349,7 @@ def test_filtro_todas_mostra_a_concluida(client, atendente, tarefa):
 def test_filtro_desconhecido_nao_quebra_a_lista(client, atendente, tarefa):
     client.force_login(atendente)
 
-    resposta = client.get("/tarefas/?situacao=inventada&responsavel=abc")
+    resposta = client.get("/painel/tarefas/?situacao=inventada&responsavel=abc")
 
     assert resposta.status_code == 200
     assert "Renovar contrato" in resposta.content.decode("utf-8")
@@ -362,7 +391,7 @@ def test_ordenacao_poe_quem_nao_tem_prazo_por_ultimo(client, atendente):
     )
     client.force_login(atendente)
 
-    corpo = client.get("/tarefas/").content.decode("utf-8")
+    corpo = client.get("/painel/tarefas/").content.decode("utf-8")
 
     assert corpo.index("Com prazo") < corpo.index("Sem prazo")
 
@@ -382,7 +411,7 @@ def test_os_rotulos_do_formulario_levam_acento(client, atendente):
     """
     client.force_login(atendente)
 
-    corpo = client.get("/tarefas/nova").content.decode("utf-8")
+    corpo = client.get("/painel/tarefas/nova").content.decode("utf-8")
 
     assert ">Título</label>" in corpo
     assert ">Descrição</label>" in corpo
@@ -398,20 +427,51 @@ def test_a_pessoa_aparece_pelo_nome_e_nao_pelo_login(client, atendente, django_u
     atendente.save()
     client.force_login(atendente)
 
-    corpo = client.get("/tarefas/nova").content.decode("utf-8")
+    corpo = client.get("/painel/tarefas/nova").content.decode("utf-8")
 
     assert "Maria Souza" in corpo
     assert ">atendente</option>" not in corpo
+
+
+def test_a_area_logada_usa_a_casca_propria_e_nao_a_do_site(client, atendente):
+    """ADR 0005: quem entra ve a barra do painel, nao o menu institucional.
+
+    O cabecalho do site (`id="siteHeader"`), a barra "0800 24h" e o botao
+    "Solicitar orcamento" nao aparecem na area logada -- e a barra do painel,
+    com "Tarefas", aparece.
+    """
+    client.force_login(atendente)
+    corpo = client.get("/painel/tarefas/").content.decode("utf-8")
+
+    assert 'class="pnl-barra"' in corpo
+    assert ">Tarefas</a>" in corpo
+    assert 'id="siteHeader"' not in corpo
+    assert "Solicitar orçamento" not in corpo
+    assert "0800" not in corpo
+
+
+def test_a_barra_do_painel_so_mostra_atendimento_para_is_staff(
+    client, atendente, pessoa_sem_acesso
+):
+    """Atendimento tem dado de terceiro e continua `is_staff` (ADR 0005)."""
+    client.force_login(atendente)
+    com_staff = client.get("/painel/tarefas/").content.decode("utf-8")
+
+    client.force_login(pessoa_sem_acesso)
+    sem_staff = client.get("/painel/tarefas/").content.decode("utf-8")
+
+    assert 'href="/painel/atendimento/"' in com_staff
+    assert 'href="/painel/atendimento/"' not in sem_staff
 
 
 def test_nenhuma_tela_de_tarefa_vaza_sintaxe_de_template(client, atendente, tarefa):
     client.force_login(atendente)
 
     caminhos = [
-        "/tarefas/",
-        "/tarefas/nova",
-        f"/tarefas/{tarefa.pk}/",
-        f"/tarefas/{tarefa.pk}/editar",
+        "/painel/tarefas/",
+        "/painel/tarefas/nova",
+        f"/painel/tarefas/{tarefa.pk}/",
+        f"/painel/tarefas/{tarefa.pk}/editar",
     ]
     for caminho in caminhos:
         corpo = client.get(caminho).content.decode("utf-8")

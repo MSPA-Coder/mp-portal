@@ -1,20 +1,23 @@
 """As telas de tarefa: lista, ficha, cadastro e acompanhamento.
 
-Autorizacao e `somente_equipe`, a mesma do atendimento e pela mesma razao
-escrita em `core/autorizacao.py`: a conta de cliente que o ADR 0002 preve
-tambem sera autenticada, e "autenticado" nao pode ser o criterio.
+Autorizacao e `login_required`: as tarefas sao o espaco compartilhado das
+quatro pessoas do circulo (mantenedor + tres), no lugar das mensagens de
+WhatsApp que se perdem (ADR 0005). Nao ha `is_staff` aqui -- esse marcador
+passou a valer para "administra o portal" (contas), nao para "pode trabalhar
+nele".
 
-Dentro da equipe NAO ha segunda camada de permissao -- quem entra ve e mexe em
-tudo. Sao tres pessoas que ja decidem juntas o que cada uma faz; uma matriz de
-permissao aqui seria estrutura sem leitor, que e o mesmo argumento do ADR 0002.
-O que existe no lugar e rastro: toda mudanca de situacao vira uma linha de
-andamento com autor e data.
+NAO ha segunda camada de permissao -- quem entra ve e mexe em tudo. Sao quatro
+pessoas que ja decidem juntas o que cada uma faz; uma matriz de permissao aqui
+seria estrutura sem leitor, o mesmo argumento do ADR 0004. O que existe no
+lugar e rastro: toda mudanca de situacao vira uma linha de andamento com autor
+e data.
 """
 
 from __future__ import annotations
 
 import logging
 
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -24,8 +27,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 
-from core.autorizacao import somente_equipe
-from tarefas.forms import AndamentoForm, TarefaForm, equipe, nome_de_pessoa
+from tarefas.forms import AndamentoForm, TarefaForm, nome_de_pessoa, pessoas
 from tarefas.models import SITUACOES_ABERTAS, Andamento, Situacao, Tarefa
 
 logger = logging.getLogger("portal.tarefas")
@@ -48,7 +50,7 @@ def _tarefas_ordenadas():
     )
 
 
-@somente_equipe
+@login_required
 def lista(request: HttpRequest) -> HttpResponse:
     filtro = request.GET.get("situacao") or FILTRO_ABERTAS
     de_quem = request.GET.get("responsavel") or ""
@@ -70,7 +72,7 @@ def lista(request: HttpRequest) -> HttpResponse:
     # Um numero por pessoa, na consulta que ja e feita de qualquer forma: e o
     # "acompanhamento simples" pedido, sem virar relatorio.
     por_pessoa = (
-        equipe()
+        pessoas()
         .annotate(
             abertas=Count("tarefas", filter=Q(tarefas__situacao__in=SITUACOES_ABERTAS))
         )
@@ -87,14 +89,14 @@ def lista(request: HttpRequest) -> HttpResponse:
             "situacoes": Situacao.choices,
             "filtro": filtro,
             "filtro_abertas": FILTRO_ABERTAS,
-            "equipe": por_pessoa,
+            "pessoas": por_pessoa,
             "de_quem": de_quem,
             "total": paginador.count,
         },
     )
 
 
-@somente_equipe
+@login_required
 @require_http_methods(["GET", "POST"])
 def nova(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
@@ -133,7 +135,7 @@ def nova(request: HttpRequest) -> HttpResponse:
     )
 
 
-@somente_equipe
+@login_required
 @require_http_methods(["GET", "POST"])
 def editar(request: HttpRequest, pk: int) -> HttpResponse:
     tarefa = get_object_or_404(Tarefa, pk=pk)
@@ -178,7 +180,7 @@ def editar(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@somente_equipe
+@login_required
 def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
     tarefa = get_object_or_404(
         Tarefa.objects.select_related("responsavel", "criado_por"), pk=pk
@@ -197,7 +199,7 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@somente_equipe
+@login_required
 @require_POST
 def mudar_situacao(request: HttpRequest, pk: int) -> HttpResponse:
     tarefa = get_object_or_404(Tarefa, pk=pk)
@@ -228,7 +230,7 @@ def mudar_situacao(request: HttpRequest, pk: int) -> HttpResponse:
     return HttpResponseRedirect(reverse("tarefa_detalhe", args=[tarefa.pk]))
 
 
-@somente_equipe
+@login_required
 @require_POST
 def registrar_andamento(request: HttpRequest, pk: int) -> HttpResponse:
     tarefa = get_object_or_404(

@@ -1,15 +1,18 @@
-"""Quem pode abrir as telas internas.
+"""Quem pode abrir as telas de administracao do portal.
 
-Existe uma regra so, e ela vale para as duas areas autenticadas de hoje --
-atendimento e tarefas: **conta da equipe**, marcada por `is_staff`. Estava
-escrita dentro de `contatos/views.py` enquanto havia uma area unica; subiu para
-ca quando a segunda apareceu, porque duas copias da mesma decisao de
-autorizacao divergem no dia em que uma delas for corrigida.
+Uma regra so: **conta que administra**, marcada por `is_staff`. Hoje ela
+guarda o atendimento -- os pedidos que chegam pelo formulario publico, com dado
+pessoal de terceiro que a ADR 0005 decidiu NAO abrir para o circulo inteiro
+antes de existir um sistema de perfis. Vale tambem para o CRUD de contas,
+quando ele entrar.
 
-`is_staff` e nao "autenticado" e deliberado. O ADR 0002 registra que a area do
-cliente vai existir, e a conta de cliente sera autenticada tambem -- se o
-criterio fosse a sessao, o dia em que o primeiro cliente entrar seria o dia em
-que ele passaria a ler as tarefas internas da MP.
+As tarefas NAO usam mais este decorador -- desde a ADR 0005 elas sao
+`login_required`, o espaco compartilhado das quatro pessoas. `is_staff` deixou
+de significar "equipe da MP x cliente" e passou a significar "administra x usa".
+
+O decorador continua aqui, e nao dentro de `contatos/views.py`, porque contas
+vai reusa-lo: duas copias da mesma decisao de autorizacao divergem no dia em
+que uma delas for corrigida.
 """
 
 from __future__ import annotations
