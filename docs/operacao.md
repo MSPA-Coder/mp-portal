@@ -1,23 +1,34 @@
 # Operação: a virada, e o que ela aciona
 
-O portal **não está publicado**. Em produção, quem atende `mp-solucoes` hoje é
-o site estático do repositório `MpSolucoes`, servido por nginx na porta 5501.
-Publicar este repositório não é instalar um serviço novo: é **substituir um
-serviço que está no ar**.
+O portal **não está publicado**. Em produção, quem atende
+`mp-solucoes.duckdns.org` hoje é o site estático (contêiner nginx, porta 5501)
+que roda no VPS. Publicar este repositório não é instalar um serviço novo: é
+**substituir um serviço que está no ar**.
+
+O repositório de origem daquele site (`mp-solucoes`, no GitHub, e a pasta local
+`MpSolucoes`) foi **removido em 10/09/2026**. O histórico da F5 está preservado
+no bundle `mp-solucoes-f5-arquivo.bundle` (em `Dropbox/Programacao/`); a cópia
+que serve produção é a que está no servidor. Enquanto a virada não acontece, um
+defeito de infra que derrube esse contêiner só se resolve pelo bundle ou pelo
+próprio VPS.
 
 Este documento é a lista do que falta, na ordem, para que o dia da virada seja
 uma execução e não uma redescoberta.
 
-## 0. Antes de qualquer coisa: três decisões voltam à mesa
+## 0. Antes de qualquer coisa: duas decisões voltam à mesa
 
 A §6 do `LEVANTAMENTO_2026-09.md` registra cinco riscos aceitos, cada um com o
-gatilho que deve fazer a decisão ser revisitada. **A virada dispara três.**
+gatilho que deve fazer a decisão ser revisitada. **A virada dispara duas.**
 
 | Achado | O que estava aceito | Por que dispara agora |
 |---|---|---|
 | **L06** — RTO nunca medido | Sabe-se que o dump restaura; não se sabe em quanto tempo o ambiente inteiro volta. | O gatilho é literal: *"antes de o portal do cliente entrar no ar"*. E agora vale mais: depois da incorporação, **o site institucional cai junto com a aplicação**. Um site fora do ar é cliente que não chega. |
 | **L19** — DuckDNS | Sufixo compartilhado, sem autoridade de domínio, sem e-mail corporativo. | O domínio próprio já está a caminho. Ele destrava o e-mail no domínio (encaminhamento gratuito resolve) e o canal do titular exigido pela LGPD, que hoje não tem endereço. |
-| **L11** — `mp-solucoes` sem branch protection | `main` aceita force-push, sem status check obrigatório. | O que se aceita para um site estático não é o que se aceita para um repositório cujo defeito derruba o site **e** vaza dado pessoal de terceiro. |
+
+O achado **L11** (o repositório `mp-solucoes` sem branch protection) deixou de
+ter objeto: o repositório foi removido em 10/09/2026. O que dele importa daqui
+pra frente é a proteção da `main` **deste** repositório, cujo defeito derruba o
+site **e** vaza dado pessoal de terceiro.
 
 ## 1. Medir o RTO antes (L06)
 
@@ -78,6 +89,8 @@ eliminou, e ficam registradas para que ninguém as procure:
 - afrouxar `form-action` ou `connect-src` na CSP do site;
 - configurar lista de origens, CORS e pré-voo.
 
+O "outro repositório" citado acima nem existe mais — foi removido em 10/09/2026.
+
 ## 5. Dados que faltam antes de divulgar
 
 - **Telefone, WhatsApp e e-mail comercial reais**, hoje mascarados com
@@ -114,5 +127,13 @@ publicação.
 
 ## 8. Depois de tudo verificado
 
-Arquivar o repositório `MpSolucoes` (arquivar, não apagar: o histórico da F5
-continua legível), remover o verbo `mp` do `deploy.sh` e podar a imagem antiga.
+O repositório `mp-solucoes` já saiu (GitHub e cópia local, em 10/09/2026; a F5
+está no bundle `mp-solucoes-f5-arquivo.bundle`). O que resta é **no VPS e no
+`manutencao`**, e só depois da virada verificada:
+
+- remover o verbo `mp` do `vps/deploy.sh`;
+- tirar o vhost `mp-solucoes` (`vps/nginx/`) e a linha correspondente do
+  `vps/nginx/instalar.sh`;
+- tirar `mp-solucoes.duckdns.org` do `vps/vigia.sh` e do
+  `vps/uptimerobot-monitores.sh`;
+- parar e podar o contêiner e a imagem do site estático no servidor.
