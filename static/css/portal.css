@@ -101,8 +101,82 @@
 }
 .botao:hover { background: var(--acc-deep); color: var(--ink); }
 .botao-perigo { background: #ff6b6b; color: #2b0808; }
+.botao-discreto { background: transparent; color: var(--ink); border: 1px solid var(--line2); }
+.botao-discreto:hover { background: var(--line); color: var(--ink); }
+
+/* ---------------------------------------------------------------------------
+   Tarefas da equipe
+   --------------------------------------------------------------------------- */
+
+.cartao-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* Placar por pessoa: um número por responsável, e o número filtra a lista. */
+.placar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 18px 0 4px; }
+.placar-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.placar-item:hover { border-color: var(--acc); }
+.placar-ativo { border-color: var(--acc); background: rgba(49, 227, 162, .08); }
+.placar-numero { font-size: 1.25rem; font-weight: 700; color: var(--acc); }
+.placar-nome { color: var(--mut); font-size: .85rem; }
+.placar-limpar { color: var(--mut); font-size: .85rem; }
+
+/* Etiqueta de situação. As cores repetem a leitura da tabela: verde é fim de
+   linha, âmbar pede atenção, vermelho é impedimento. */
+.etiqueta {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: .75rem;
+  letter-spacing: .03em;
+  border: 1px solid var(--line2);
+  color: var(--mut);
+  white-space: nowrap;
+}
+.etiqueta-em_andamento { border-color: var(--acc); color: var(--acc); }
+.etiqueta-bloqueada { border-color: #ff6b6b; color: #ff6b6b; }
+.etiqueta-concluida { border-color: var(--acc-deep); color: var(--acc-deep); }
+.etiqueta-cancelada { opacity: .6; }
+.etiqueta-atraso { border-color: var(--amb); color: var(--amb); margin-left: 6px; }
+.atrasada { color: var(--amb); }
+
+.campo textarea, .campo select {
+  width: 100%;
+  padding: 9px 10px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  font: inherit;
+}
+.campo textarea:focus, .campo select:focus { outline: 2px solid var(--acc); }
+.f-erro { color: #ff6b6b; font-size: .8rem; }
+
+.andamento-novo { margin: 16px 0 24px; }
+
+/* Linha do tempo: nota de pessoa tem a barra em destaque, evento do sistema
+   fica recuado e discreto. É a leitura rápida de "o que foi dito" contra "o
+   que aconteceu". */
+.linha-do-tempo { list-style: none; margin: 0; padding: 0; }
+.linha-do-tempo li {
+  border-left: 2px solid var(--line2);
+  padding: 8px 0 8px 14px;
+  margin-bottom: 4px;
+}
+.linha-do-tempo .nota { border-left-color: var(--acc); }
+.linha-do-tempo .evento { color: var(--mut); font-size: .9rem; }
+.linha-cabeca { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.linha-cabeca strong { font-size: .9rem; }
 
 @media (max-width: 640px) {
   .ficha { grid-template-columns: 1fr; }
   .ficha dd { margin-bottom: 8px; }
+  .cartao-topo { flex-direction: column; }
 }

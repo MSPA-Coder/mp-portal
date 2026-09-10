@@ -8,6 +8,11 @@ de contato com destino, área autenticada). Uma aplicação, um repositório, um
 domínio — ver `docs/adr/0003-site-incorporado-ao-portal.md`, que registra a
 incorporação e o que ela reverteu.
 
+A área autenticada tem duas telas hoje: **atendimento** (as solicitações
+vindas do site) e **tarefas** (o que a equipe de três pessoas combinou de
+fazer — ver `docs/adr/0004-tarefas-da-equipe-modulo-proprio.md`, que registra
+por que é módulo daqui e não ferramenta de fora).
+
 Fontes de verdade, nesta ordem: o código, este arquivo, o `README.md`,
 `docs/operacao.md`, `docs/adr/` e o repositório `manutencao` para a
 infraestrutura compartilhada do VPS.
@@ -65,6 +70,19 @@ levantamento).
   abriria um segundo login, fora do `/login` que o nginx central limita.
 - **Destino pós-login é derivado da conta** (`contas/views.py`), nunca fixo. É a
   emenda por onde a área do cliente entra — ver ADR 0002.
+- **Quem entra na área interna é `is_staff`**, e a regra mora em UM lugar:
+  `core/autorizacao.somente_equipe`. Não recrie o decorador dentro de um app, e
+  não troque o critério por "autenticado" — a conta de cliente que o ADR 0002
+  prevê também será autenticada.
+- **No menu, `Login` é para quem não entrou** e as áreas internas são para quem
+  entrou (`templates/site/_topo.html`). Mostrar "Login" a quem já tem sessão
+  sugere que ela caiu — a mesma razão pela qual o 403 do atendimento não
+  devolve ninguém à tela de login.
+- **Rota nova sob sessão entra no `robots.txt`.** Toda área autenticada é
+  `Disallow`; para o robô, cada visita vira um desvio para o login.
+- **Em `tarefas`, `situacao` e `concluida_em` mudam juntas**, pelo
+  `Tarefa.aplicar_situacao`. A restrição `tarefa_conclusao_coerente` recusa a
+  divergência no banco — não escreva `situacao` direto.
 - **`/health` responde com e sem barra**, com o corpo
   `{"servico": "mp-portal", "status": ...}`. O `deploy.sh` e o vigia dependem
   desse formato.
@@ -82,6 +100,10 @@ levantamento).
 - **Acento em texto de interface, nunca em identificador.** Rótulo exibido,
   mensagem e documento levam acento; nome de campo, código de `TextChoices`,
   chave de dicionário, nome de teste e token de log são ASCII.
+  **Consequência em modelo Django:** o rótulo padrão é derivado do nome do
+  atributo, que é ASCII por esta mesma regra — então campo que aparece em
+  formulário precisa de `verbose_name` explícito, ou a tela mostra "Descricao".
+  Aconteceu em `tarefas`, passou pela suíte inteira e só apareceu no navegador.
 - **Comentário de template em várias linhas é `{% comment %}`**, nunca
   `{# #}` — a forma com cerquilha só vale em uma linha, e escrita em duas o
   texto sai no HTML. Há teste procurando sintaxe vazada.

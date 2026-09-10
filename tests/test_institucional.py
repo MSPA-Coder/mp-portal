@@ -124,6 +124,9 @@ def test_robots_aponta_o_sitemap_e_fecha_a_area_autenticada(client, settings):
 
     assert "Sitemap: http://exemplo.invalid/sitemap.xml" in corpo
     assert "Disallow: /atendimento/" in corpo
+    # Toda area sob sessao fica fora do rastreamento, e nao so a primeira que
+    # existiu: para o robo, cada visita vira um desvio para o login.
+    assert "Disallow: /tarefas/" in corpo
 
 
 def trecho(corpo: str, inicio: str, fim: str = "</nav>") -> str:
@@ -139,14 +142,20 @@ def test_o_menu_leva_a_area_autenticada_nos_dois_menus(client):
     versao deste teste procurava o link no corpo todo e passava com ele
     removido do menu principal, porque o menu mobile ainda o continha --
     descoberto por mutacao, que e exatamente para isso que ela serve.
+
+    O DESTINO mudou de `/atendimento/` para `/login` quando o rotulo passou a
+    ser "Login": antes, o visitante clicava no nome de uma sala em que nao
+    podia entrar e era devolvido ao login por um desvio. O que este teste
+    protege continua sendo o mesmo -- que exista, nos dois menus, o caminho de
+    entrada.
     """
     corpo = client.get("/").content.decode("utf-8")
 
     principal = trecho(corpo, 'class="nav-links"')
     mobile = trecho(corpo, 'class="mnav"')
 
-    assert 'href="/atendimento/"' in principal
-    assert 'href="/atendimento/"' in mobile
+    assert 'href="/login"' in principal
+    assert 'href="/login"' in mobile
 
 
 def test_o_rodape_leva_ao_aviso_de_privacidade(client):

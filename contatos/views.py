@@ -14,10 +14,8 @@ de endereco de rede, corpo pequeno e consentimento como restricao de banco.
 from __future__ import annotations
 
 import logging
-from functools import wraps
 
 from django.conf import settings
-from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -31,6 +29,7 @@ from contatos import privacidade as aviso
 from contatos.forms import CAMPO_ARMADILHA, ContatoForm
 from contatos.limites import endereco_de_origem, excedeu_limite, resumo_de_endereco
 from contatos.models import Contato, Segmento, Situacao, Solucao
+from core.autorizacao import somente_equipe
 from institucional.paginas import POR_NOME
 from institucional.views import contexto_da_pagina
 
@@ -165,26 +164,12 @@ def privacidade(request: HttpRequest) -> HttpResponse:
 # ---------------------------------------------------------------------------
 
 
-def somente_atendimento(view):
-    """Exige sessao e `is_staff`.
-
-    Anonimo vai para o login; autenticado sem permissao recebe 403. A diferenca
-    e proposital: mandar quem ja esta logado de volta ao login sugere que a
-    sessao caiu, e a pessoa tenta de novo para sempre.
-    """
-
-    @wraps(view)
-    def envolvida(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        if not request.user.is_authenticated:
-            return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
-        if not request.user.is_staff:
-            raise PermissionDenied
-        return view(request, *args, **kwargs)
-
-    return envolvida
+# A regra de quem entra mora em `core.autorizacao`: ela vale igual para o
+# atendimento e para as tarefas, e duas copias divergiriam no dia em que uma
+# delas fosse corrigida.
 
 
-@somente_atendimento
+@somente_equipe
 def atendimento_lista(request: HttpRequest) -> HttpResponse:
     filtro = request.GET.get("situacao", "")
     registros = Contato.objects.all()
@@ -207,7 +192,7 @@ def atendimento_lista(request: HttpRequest) -> HttpResponse:
     )
 
 
-@somente_atendimento
+@somente_equipe
 def atendimento_detalhe(request: HttpRequest, pk: int) -> HttpResponse:
     registro = get_object_or_404(Contato, pk=pk)
     return render(
@@ -222,7 +207,7 @@ def atendimento_detalhe(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@somente_atendimento
+@somente_equipe
 @require_POST
 def atendimento_situacao(request: HttpRequest, pk: int) -> HttpResponse:
     registro = get_object_or_404(Contato, pk=pk)
@@ -240,7 +225,7 @@ def atendimento_situacao(request: HttpRequest, pk: int) -> HttpResponse:
     return HttpResponseRedirect(reverse("atendimento_detalhe", args=[registro.pk]))
 
 
-@somente_atendimento
+@somente_equipe
 @require_POST
 def atendimento_excluir(request: HttpRequest, pk: int) -> HttpResponse:
     """Exclusao definitiva, a pedido do titular (LGPD, art. 18, VI).

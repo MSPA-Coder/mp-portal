@@ -138,6 +138,7 @@ jobs:
             require_read_only /workspace/portal
             require_read_only /workspace/contatos
             require_read_only /workspace/institucional
+            require_read_only /workspace/tarefas
             require_writable /workspace/logs
             require_writable /workspace/staticfiles
             require_absent ruff

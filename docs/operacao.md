@@ -104,7 +104,8 @@ publicação.
 - `/contato` mostrando o formulário, e um envio real chegando à lista;
 - um envio sem token CSRF recusado;
 - `/privacidade` acessível pelo rodapé, com o canal do titular preenchido;
-- `/atendimento/` pedindo login para quem não tem sessão;
+- `/atendimento/` e `/tarefas/` pedindo login para quem não tem sessão, e o
+  menu do visitante oferecendo **Login** e nenhuma área interna;
 - `robots.txt` e `sitemap.xml` com o **domínio novo**, sem nenhuma edição no
   repositório — é a prova de que a propriedade da F5 sobreviveu;
 - `/health` no vigia e no monitor externo;

@@ -1,0 +1,82 @@
+{% extends "site/base.html" %}
+{% load static %}
+{% block cabeca %}<link rel="stylesheet" href="{% static 'css/portal.css' %}">{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block titulo %}{{ tarefa.titulo }} — MP Soluções Corporativas{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <p class="discreto"><a href="{% url 'tarefas_lista' %}">← Voltar às tarefas</a></p>
+
+  <div class="cartao-topo">
+    <div>
+      <h1>{{ tarefa.titulo }}</h1>
+      <p class="discreto">
+        Criada por {{ tarefa.criado_por.get_full_name|default:tarefa.criado_por.username }}
+        em {{ tarefa.criado_em|date:"d/m/Y \à\s H:i" }}.
+      </p>
+    </div>
+    <a href="{% url 'tarefa_editar' tarefa.pk %}" class="botao botao-discreto">Editar</a>
+  </div>
+
+  <dl class="ficha">
+    <dt>Responsável</dt>
+    <dd>{{ tarefa.responsavel.get_full_name|default:tarefa.responsavel.username }}</dd>
+    <dt>Prazo</dt>
+    <dd>
+      {% if tarefa.prazo %}
+        <span{% if tarefa.esta_atrasada %} class="atrasada"{% endif %}>{{ tarefa.prazo|date:"d/m/Y" }}</span>
+        {% if tarefa.esta_atrasada %}<span class="etiqueta etiqueta-atraso">Atrasada</span>{% endif %}
+      {% else %}Sem prazo definido{% endif %}
+    </dd>
+    <dt>Prioridade</dt><dd>{{ tarefa.get_prioridade_display }}</dd>
+    <dt>Situação</dt>
+    <dd>
+      <span class="etiqueta etiqueta-{{ tarefa.situacao }}">{{ tarefa.get_situacao_display }}</span>
+      {% if tarefa.concluida_em %}
+        <span class="discreto">em {{ tarefa.concluida_em|date:"d/m/Y \à\s H:i" }}</span>
+      {% endif %}
+    </dd>
+    <dt>Descrição</dt>
+    <dd class="mensagem">{{ tarefa.descricao|default:"—"|linebreaksbr }}</dd>
+  </dl>
+
+  <h2>Situação</h2>
+  <form method="post" action="{% url 'tarefa_situacao' tarefa.pk %}" class="filtro">
+    {% csrf_token %}
+    <label for="situacao">Mudar para</label>
+    <select name="situacao" id="situacao">
+      {% for valor, rotulo in situacoes %}
+        <option value="{{ valor }}"{% if valor == tarefa.situacao %} selected{% endif %}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="botao">Salvar</button>
+  </form>
+
+  <h2>Andamento</h2>
+  <form method="post" action="{% url 'tarefa_andamento' tarefa.pk %}" class="andamento-novo">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="{{ formulario.texto.id_for_label }}">Registrar o que aconteceu</label>
+      {{ formulario.texto }}
+      {% for erro in formulario.texto.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
+    </div>
+    <button type="submit" class="botao">Registrar</button>
+  </form>
+
+  <ol class="linha-do-tempo">
+    {% for andamento in andamentos %}
+      <li class="{% if andamento.automatico %}evento{% else %}nota{% endif %}">
+        <div class="linha-cabeca">
+          <strong>{{ andamento.autor.get_full_name|default:andamento.autor.username }}</strong>
+          <span class="discreto">{{ andamento.criado_em|date:"d/m/Y \à\s H:i" }}</span>
+        </div>
+        <div class="mensagem">{{ andamento.texto|linebreaksbr }}</div>
+      </li>
+    {% empty %}
+      <li class="vazio">Nenhum andamento registrado ainda.</li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}

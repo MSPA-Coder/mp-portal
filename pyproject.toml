@@ -59,6 +59,7 @@ packages = [
   "contas",
   "contatos",
   "institucional",
+  "tarefas",
 ]
 
 # `sharedauth` e referencia direta a um repositorio Git (nao a um indice PyPI):

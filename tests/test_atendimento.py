@@ -60,6 +60,41 @@ def test_atendente_ve_a_lista_e_o_detalhe(client, atendente, contato):
     assert "Duas torres" in detalhe.content.decode("utf-8")
 
 
+def test_o_menu_publico_oferece_o_login_e_nao_a_area_interna(client):
+    """Para quem nao entrou, o item do menu e a porta -- e nao o nome da sala.
+
+    O rotulo era "Atendimento" e apontava para `/atendimento/`, que devolvia o
+    visitante ao login. Passou a ser "Login" e a apontar para `/login`: o
+    destino e o mesmo, e agora o rotulo diz qual e.
+    """
+    corpo = client.get("/").content.decode("utf-8")
+
+    assert 'href="/login"' in corpo
+    assert ">Login</a>" in corpo
+    assert 'href="/atendimento/"' not in corpo
+
+
+def test_o_menu_da_equipe_troca_o_login_pelas_areas_internas(client, atendente):
+    """Mostrar "Login" a quem ja entrou sugere que a sessao caiu."""
+    client.force_login(atendente)
+
+    corpo = client.get("/").content.decode("utf-8")
+
+    assert 'href="/atendimento/"' in corpo
+    assert 'href="/tarefas/"' in corpo
+    assert ">Login</a>" not in corpo
+
+
+def test_conta_sem_area_propria_nao_ve_atalho_para_area_interna(client, pessoa_sem_acesso):
+    """O 403 ja recusaria a entrada; o menu nao deve convidar para ele."""
+    client.force_login(pessoa_sem_acesso)
+
+    corpo = client.get("/").content.decode("utf-8")
+
+    assert 'href="/atendimento/"' not in corpo
+    assert 'href="/tarefas/"' not in corpo
+
+
 def test_login_recusa_credencial_errada_sem_dizer_qual_parte_errou(client, atendente):
     resposta = client.post(
         "/login", {"username": "atendente", "password": "errada"}

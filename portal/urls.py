@@ -2,8 +2,8 @@
 
 A raiz e o site institucional, e nao mais um desvio para o login: depois da
 incorporacao, o portal E o site. As rotas autenticadas ficam abaixo de
-`/atendimento/`, e o login e `/login` -- nome escolhido porque o nginx central
-do VPS aplica limite de taxa exatamente a `POST /login`.
+`/atendimento/` e `/tarefas/`, e o login e `/login` -- nome escolhido porque o
+nginx central do VPS aplica limite de taxa exatamente a `POST /login`.
 """
 
 from django.contrib.auth import logout
@@ -42,9 +42,10 @@ urlpatterns = [
     path("login/", RedirectView.as_view(pattern_name="login", permanent=False)),
     path("logout", sair, name="logout"),
     path("apos-login", apos_login, name="apos_login"),
-    # As rotas do site institucional e as do atendimento compartilham a raiz.
-    # `contatos` vem antes porque serve `/contato`, que o institucional
+    # As rotas do site institucional e as das areas internas compartilham a
+    # raiz. `contatos` vem antes porque serve `/contato`, que o institucional
     # deliberadamente nao registra (aquela pagina responde GET e POST).
     path("", include("contatos.urls")),
+    path("", include("tarefas.urls")),
     path("", include("institucional.urls")),
 ]

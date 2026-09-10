@@ -8,8 +8,9 @@ O site e o sistema da **MP Soluções Corporativas**, numa aplicação só.
 - **Um formulário de contato com destino real** — o pedido vai para o
   PostgreSQL, com consentimento registrado e prazo de retenção que é cumprido
   por comando.
-- **Uma área com login** — hoje o atendimento, usado pela equipe da MP para
-  triar as solicitações. É a área que vai crescer.
+- **Uma área com login** — o atendimento, onde a equipe da MP tria as
+  solicitações, e as tarefas da equipe: o que fazer, de quem é, para quando e
+  como está. É a área que vai crescer.
 
 É o repositório previsto pela **fase F7** do `LEVANTAMENTO_2026-09.md`
 (repositório `manutencao`), no padrão da frota: Django, `sharedauth`, Compose,
@@ -24,6 +25,7 @@ CI, `/health`, `deploy.sh`, backup e vigia.
 | `/privacidade` | O aviso de privacidade, montado a partir de `contatos/privacidade.py`. |
 | `/login` → `/apos-login` | Entrada. O destino sai da conta, não de um endereço fixo. |
 | `/atendimento/` | Lista e ficha das solicitações. Exige conta com `is_staff`. |
+| `/tarefas/` | Tarefas da equipe, com responsável, prazo, situação e linha do tempo. Exige `is_staff`. |
 | `/health` | Sonda que consulta o banco. Contrato comum aos aplicativos da frota. |
 | `/robots.txt`, `/sitemap.xml` | Gerados da mesma tabela que monta o menu. |
 
@@ -114,5 +116,6 @@ entra junto com a publicação.
 - [`AGENTS.md`](AGENTS.md) — invariantes e como trabalhar neste repositório.
 - [`docs/operacao.md`](docs/operacao.md) — o que falta para publicar, e o que a
   publicação aciona.
-- [`docs/adr/`](docs/adr) — as três decisões que custam caro para reverter,
-  incluindo a incorporação do site (0003) e a reversão que ela provocou (0001).
+- [`docs/adr/`](docs/adr) — as quatro decisões que custam caro para reverter,
+  incluindo a incorporação do site (0003), a reversão que ela provocou (0001) e
+  o módulo de tarefas ser daqui e não de fora (0004).
