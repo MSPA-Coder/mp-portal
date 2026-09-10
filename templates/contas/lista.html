@@ -25,7 +25,10 @@
         <tr{% if not conta.is_active %} class="etiqueta-cancelada"{% endif %}>
           <td>{{ conta.get_full_name|default:"—" }}</td>
           <td class="mono">{{ conta.username }}</td>
-          <td>{% if conta.is_staff %}Administra{% else %}Usa{% endif %}</td>
+          <td>
+            {% if conta.is_staff %}Administra{% else %}Usa{% endif %}
+            {% if conta.recebe_novos_contatos %}<br><span class="discreto">recebe os contatos do site</span>{% endif %}
+          </td>
           <td>{{ conta.tarefas_abertas }}</td>
           <td>
             {% if conta.is_active %}

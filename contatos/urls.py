@@ -28,6 +28,11 @@ urlpatterns = [
         name="atendimento_situacao",
     ),
     path(
+        "painel/atendimento/<int:pk>/responsavel",
+        views.atendimento_responsavel,
+        name="atendimento_responsavel",
+    ),
+    path(
         "painel/atendimento/<int:pk>/excluir",
         views.atendimento_excluir,
         name="atendimento_excluir",

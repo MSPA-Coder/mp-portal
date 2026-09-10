@@ -15,6 +15,7 @@ sao consequencia disso:
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.db import models
 
 
@@ -67,6 +68,19 @@ class Contato(models.Model):
 
     situacao = models.CharField(
         max_length=20, choices=Situacao.choices, default=Situacao.NOVO
+    )
+
+    # Quem cuida desta solicitacao. Nulo quando chega -- so recebe dono se
+    # houver uma conta marcada como caixa de atendimento (ADR 0005 fase 5) --,
+    # e trocavel na ficha. PROTECT como nas tarefas: a conta responsavel nao
+    # some por baixo de um registro que aponta para ela.
+    responsavel = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="atendimentos",
+        verbose_name="responsável",
     )
 
     class Meta:

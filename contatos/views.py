@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -118,6 +119,9 @@ def contato(request: HttpRequest) -> HttpResponse:
             aviso_versao=aviso.AVISO_VERSAO,
             origem=request.headers.get("Origin", "")[:200],
             ip_hash=ip_hash,
+            # Cai na caixa de atendimento designada, se houver uma. Sem
+            # ninguem marcado, entra sem dono e aparece em "não atribuídas".
+            responsavel=get_user_model().caixa_de_atendimento(),
         )
 
     # Sem nome, e-mail ou telefone no log: ele vai para arquivo e para o console
@@ -169,12 +173,25 @@ def privacidade(request: HttpRequest) -> HttpResponse:
 # delas fosse corrigida.
 
 
+def _equipe_do_atendimento():
+    """Contas que podem ser responsaveis por uma solicitacao: `is_staff` ativas."""
+    return (
+        get_user_model()
+        .objects.filter(is_staff=True, is_active=True)
+        .order_by("first_name", "username")
+    )
+
+
 @somente_equipe
 def atendimento_lista(request: HttpRequest) -> HttpResponse:
     filtro = request.GET.get("situacao", "")
-    registros = Contato.objects.all()
+    so_as_minhas = request.GET.get("meus") == "1"
+
+    registros = Contato.objects.select_related("responsavel")
     if filtro in Situacao.values:
         registros = registros.filter(situacao=filtro)
+    if so_as_minhas:
+        registros = registros.filter(responsavel=request.user)
 
     paginador = Paginator(registros, 25)
     pagina = paginador.get_page(request.GET.get("pagina"))
@@ -187,6 +204,10 @@ def atendimento_lista(request: HttpRequest) -> HttpResponse:
             "pagina": pagina,
             "situacoes": Situacao.choices,
             "filtro": filtro,
+            "so_as_minhas": so_as_minhas,
+            "minhas_abertas": Contato.objects.filter(
+                responsavel=request.user
+            ).exclude(situacao__in=(Situacao.CONVERTIDO, Situacao.DESCARTADO)).count(),
             "total": paginador.count,
         },
     )
@@ -194,7 +215,9 @@ def atendimento_lista(request: HttpRequest) -> HttpResponse:
 
 @somente_equipe
 def atendimento_detalhe(request: HttpRequest, pk: int) -> HttpResponse:
-    registro = get_object_or_404(Contato, pk=pk)
+    registro = get_object_or_404(
+        Contato.objects.select_related("responsavel"), pk=pk
+    )
     return render(
         request,
         "contatos/detalhe.html",
@@ -203,8 +226,33 @@ def atendimento_detalhe(request: HttpRequest, pk: int) -> HttpResponse:
             "pagina_ativa": "atendimento",
             "contato": registro,
             "situacoes": Situacao.choices,
+            "equipe": _equipe_do_atendimento(),
         },
     )
+
+
+@somente_equipe
+@require_POST
+def atendimento_responsavel(request: HttpRequest, pk: int) -> HttpResponse:
+    """Passa a solicitacao para outra conta da equipe, ou tira o dono (vazio)."""
+    registro = get_object_or_404(Contato, pk=pk)
+    escolha = request.POST.get("responsavel", "")
+
+    if escolha == "":
+        registro.responsavel = None
+    elif escolha.isdigit() and _equipe_do_atendimento().filter(pk=int(escolha)).exists():
+        registro.responsavel_id = int(escolha)
+    else:
+        raise PermissionDenied("Responsavel invalido.")
+
+    registro.save(update_fields=["responsavel", "atualizado_em"])
+    logger.info(
+        "contato reatribuido protocolo=%s para=%s por=%s",
+        registro.protocolo,
+        registro.responsavel.get_username() if registro.responsavel else "-",
+        request.user.get_username(),
+    )
+    return HttpResponseRedirect(reverse("atendimento_detalhe", args=[registro.pk]))
 
 
 @somente_equipe

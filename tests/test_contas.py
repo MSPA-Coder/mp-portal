@@ -217,6 +217,40 @@ def test_nao_da_para_remover_o_proprio_is_staff(client, atendente):
     assert atendente.is_staff is True
 
 
+def test_marcar_a_caixa_de_atendimento_desmarca_a_anterior(
+    client, atendente, django_user_model
+):
+    """No maximo uma caixa de entrada (ADR 0005 fase 5)."""
+    antiga = django_user_model.objects.create_user(
+        username="antiga", password=SENHA_DE_TESTE, is_staff=True,
+        recebe_novos_contatos=True,
+    )
+    client.force_login(atendente)
+
+    client.post(
+        f"/painel/contas/{atendente.pk}/",
+        {"is_staff": "on", "is_active": "on", "recebe_novos_contatos": "on"},
+    )
+    antiga.refresh_from_db()
+    atendente.refresh_from_db()
+
+    assert atendente.recebe_novos_contatos is True
+    assert antiga.recebe_novos_contatos is False
+
+
+def test_caixa_de_atendimento_exige_is_staff(client, atendente, pessoa_sem_acesso):
+    client.force_login(atendente)
+
+    resposta = client.post(
+        f"/painel/contas/{pessoa_sem_acesso.pk}/",
+        {"is_active": "on", "recebe_novos_contatos": "on"},  # sem is_staff
+    )
+    pessoa_sem_acesso.refresh_from_db()
+
+    assert resposta.status_code == 200
+    assert pessoa_sem_acesso.recebe_novos_contatos is False
+
+
 def test_nenhuma_tela_de_conta_vaza_sintaxe_de_template(client, atendente):
     client.force_login(atendente)
 

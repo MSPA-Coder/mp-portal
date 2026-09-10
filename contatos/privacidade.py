@@ -24,10 +24,14 @@ from __future__ import annotations
 from datetime import date
 
 #: Versao do texto. Mude junto com o texto, nunca depois.
-AVISO_VERSAO = "1.0"
+#: 1.1 (10/09/2026): declara o campo `responsavel` -- controle interno de qual
+#: pessoa da equipe conduz a solicitacao (ADR 0005 fase 5). Nao e coleta nova,
+#: nem finalidade nova, nem compartilhamento; a versao sobe porque a lista de
+#: campos exibida no aviso ganhou uma linha.
+AVISO_VERSAO = "1.1"
 
 #: Data a partir da qual esta versao vale.
-AVISO_VIGENTE_DESDE = date(2026, 9, 8)
+AVISO_VIGENTE_DESDE = date(2026, 9, 10)
 
 #: Base legal do tratamento. Consentimento (art. 7o, I) e nao legitimo
 #: interesse: o titular preenche um formulario espontaneamente e marca a caixa,
@@ -63,6 +67,10 @@ CAMPOS_DECLARADOS: dict[str, str] = {
     ),
     "criado_em": "Marcar o início do prazo de retenção.",
     "situacao": "Controle interno do andamento do atendimento.",
+    "responsavel": (
+        "Controle interno: qual pessoa da equipe conduz esta solicitação. "
+        "Não é dado do titular nem é compartilhado."
+    ),
     "atualizado_em": "Controle interno da última alteração do registro.",
 }
 
@@ -84,6 +92,7 @@ ROTULOS_DE_CAMPO: dict[str, str] = {
     "ip_hash": "Resumo criptográfico do endereço de rede",
     "criado_em": "Data e hora do envio",
     "situacao": "Situação do atendimento",
+    "responsavel": "Pessoa da equipe responsável pelo atendimento",
     "atualizado_em": "Data e hora da última alteração",
 }
 

@@ -81,12 +81,19 @@ class EditarContaForm(_ContaFormBase):
 
     class Meta:
         model = Conta
-        fields = ["first_name", "last_name", "is_staff", "is_active"]
+        fields = [
+            "first_name",
+            "last_name",
+            "is_staff",
+            "is_active",
+            "recebe_novos_contatos",
+        ]
         labels = {
             "first_name": "nome",
             "last_name": "sobrenome",
             "is_staff": ROTULO_IS_STAFF,
             "is_active": "conta ativa",
+            "recebe_novos_contatos": "Caixa de entrada do atendimento",
         }
         help_texts = {
             "is_staff": AJUDA_IS_STAFF,
@@ -94,7 +101,20 @@ class EditarContaForm(_ContaFormBase):
                 "Desmarcar tira o acesso sem apagar nada: o histórico de "
                 "tarefas continua, mas a pessoa não entra nem recebe tarefa nova."
             ),
+            "recebe_novos_contatos": (
+                "Toda solicitação nova do formulário do site cai para esta "
+                "pessoa. No máximo uma conta -- marcar aqui desmarca a anterior."
+            ),
         }
+
+    def clean(self):
+        dados = super().clean()
+        if dados.get("recebe_novos_contatos") and not dados.get("is_staff"):
+            self.add_error(
+                "recebe_novos_contatos",
+                "Só uma conta que administra pode ser a caixa do atendimento.",
+            )
+        return dados
 
     def _post_clean(self) -> None:
         super()._post_clean()
@@ -106,4 +126,9 @@ class EditarContaForm(_ContaFormBase):
             conta.set_password(self.cleaned_data["nova_senha"])
         if commit:
             conta.save()
+            if conta.recebe_novos_contatos:
+                # No maximo uma caixa de entrada: marcar esta desmarca as outras.
+                Conta.objects.exclude(pk=conta.pk).filter(
+                    recebe_novos_contatos=True
+                ).update(recebe_novos_contatos=False)
         return conta

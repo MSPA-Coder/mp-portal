@@ -20,7 +20,30 @@
     </dd>
     <dt>Mensagem</dt><dd class="mensagem">{{ contato.mensagem|default:"—"|linebreaksbr }}</dd>
     <dt>Situação</dt><dd>{{ contato.get_situacao_display }}</dd>
+    <dt>Responsável</dt>
+    <dd>
+      {% if contato.responsavel %}
+        {{ contato.responsavel.get_full_name|default:contato.responsavel.username }}
+      {% else %}
+        <span class="discreto">não atribuída</span>
+      {% endif %}
+    </dd>
   </dl>
+
+  <h2>Responsável</h2>
+  <form method="post" action="{% url 'atendimento_responsavel' contato.pk %}" class="filtro">
+    {% csrf_token %}
+    <label for="responsavel">Passar para</label>
+    <select name="responsavel" id="responsavel">
+      <option value="">— ninguém —</option>
+      {% for pessoa in equipe %}
+        <option value="{{ pessoa.pk }}"{% if pessoa.pk == contato.responsavel_id %} selected{% endif %}>
+          {{ pessoa.get_full_name|default:pessoa.username }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="botao">Salvar</button>
+  </form>
 
   <h2>Consentimento</h2>
   <p class="discreto">
