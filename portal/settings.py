@@ -45,7 +45,11 @@ SECRET_KEY = _read_required_secret("DJANGO_SECRET_KEY")
 # a variavel nao foi informada.
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# `_lista_do_ambiente` e nao `.split(",")`: descarta espacos e itens vazios.
+# `ALLOWED_HOSTS=dominio, localhost` com espaco depois da virgula geraria o host
+# " localhost", que nunca casa com o cabecalho Host -- 400 sem explicacao, e foi
+# exatamente o tropeco da virada de 10/09.
+ALLOWED_HOSTS = list(_lista_do_ambiente("ALLOWED_HOSTS")) or ["localhost", "127.0.0.1"]
 
 INSTALLED_APPS = [
     # `django.contrib.admin` NAO entra, pela mesma razao escrita no

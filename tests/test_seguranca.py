@@ -79,6 +79,26 @@ def test_depuracao_desligada_por_padrao():
     assert settings.DEBUG is False
 
 
+def test_listas_de_ambiente_descartam_espaco_e_vazio(monkeypatch):
+    """`ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` e os proxies passam por aqui.
+
+    `X=a, b` com espaco depois da virgula geraria o host " b", que nunca casa
+    com o cabecalho Host -- 400 sem explicacao. Foi o tropeco da virada.
+    """
+    from portal.settings import _lista_do_ambiente
+
+    monkeypatch.setenv("MP_TESTE_LISTA", " a.com , b.com,, ,c.com ")
+    assert _lista_do_ambiente("MP_TESTE_LISTA") == ("a.com", "b.com", "c.com")
+
+    monkeypatch.delenv("MP_TESTE_LISTA")
+    assert _lista_do_ambiente("MP_TESTE_LISTA") == ()
+
+
+def test_allowed_hosts_nao_tem_entrada_com_espaco():
+    for host in settings.ALLOWED_HOSTS:
+        assert host == host.strip() and host != ""
+
+
 def test_cookie_de_sessao_e_fechado():
     assert settings.SESSION_COOKIE_HTTPONLY is True
     assert settings.SESSION_COOKIE_SAMESITE == "Lax"
