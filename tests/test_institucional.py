@@ -123,10 +123,10 @@ def test_robots_aponta_o_sitemap_e_fecha_a_area_autenticada(client, settings):
     corpo = client.get("/robots.txt", headers={"host": "exemplo.invalid"}).content.decode("utf-8")
 
     assert "Sitemap: http://exemplo.invalid/sitemap.xml" in corpo
-    assert "Disallow: /atendimento/" in corpo
-    # Toda area sob sessao fica fora do rastreamento, e nao so a primeira que
-    # existiu: para o robo, cada visita vira um desvio para o login.
-    assert "Disallow: /tarefas/" in corpo
+    # Uma linha so fecha a area inteira: desde a ADR 0005 tudo que e interno
+    # mora sob `/painel/`, e para o robo cada visita ali vira um desvio para o
+    # login.
+    assert "Disallow: /painel/" in corpo
 
 
 def trecho(corpo: str, inicio: str, fim: str = "</nav>") -> str:

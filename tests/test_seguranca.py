@@ -56,7 +56,7 @@ def test_nenhuma_pagina_vaza_sintaxe_de_template(client, atendente):
             assert marca not in corpo, f"{caminho} vazou {marca}"
 
     client.force_login(atendente)
-    for caminho in ("/atendimento/", f"/atendimento/{contato.pk}/"):
+    for caminho in ("/painel/atendimento/", f"/painel/atendimento/{contato.pk}/"):
         corpo = client.get(caminho).content.decode("utf-8")
         for marca in ("{#", "{%", "{{"):
             assert marca not in corpo, f"{caminho} vazou {marca}"
