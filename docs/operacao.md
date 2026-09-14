@@ -30,30 +30,16 @@ quatro aplicativos e outro só com o portal.
 - `CONTATO_PROXIES_CONFIAVEIS=172.16.0.0/12` cobre o gateway da rede do
   Compose, que é o `REMOTE_ADDR` que o contêiner vê.
 - Backup: dump diário de `mp_portal` em `~/backups/mp_portal/`, relido com
-  `pg_restore --list` e com SHA-256.
+  `pg_restore --list` e com SHA-256. O BackupRestore, no host do mantenedor,
+  busca esses dumps todo dia (projeto `mp_portal_vps`, servidor `portal`),
+  confere o SHA-256, cataloga e ensaia a restauração fora do servidor.
+- Retenção: o `expurgo-contatos.timer` do repositório `manutencao` roda
+  `manage.py expurgar_contatos` uma vez por dia no contêiner `web`, e falha
+  alto se o portal estiver no servidor sem contêiner para rodá-lo.
 - GitHub: repositório privado, com alertas e correções de segurança do
   Dependabot ligados.
 
-O servidor anterior guarda uma cópia **desativada** do portal como caminho de
-volta: vhost desabilitado e contêineres parados, com volume, imagem e checkout
-preservados. Enquanto ela existir, o `deploy.sh --status` de lá lista o
-`mp-portal` com a saúde do domínio público — que quem responde é o VPS
-dedicado. Apagar essa cópia é decisão pendente do mantenedor.
-
 ## O que ficou aberto
-
-### Alto — a retenção do aviso de privacidade não roda sozinha
-
-`manage.py expurgar_contatos` aplica o prazo que o aviso de privacidade publica
-(`CONTATO_RETENCAO_DIAS`, 730), e hoje só roda à mão. Falta um timer diário no
-host, no formato dos outros de `manutencao/vps/`.
-
-### Alto — o backup do portal não sai do servidor
-
-O dump diário fica só no disco do VPS dedicado. O BackupRestore, que traz para
-fora os dumps dos outros aplicativos e ensaia a restauração, ainda não conhece
-este banco nem este servidor. É o único banco com dado pessoal de terceiro, e
-hoje a perda do VPS leva junto os backups.
 
 ### Alto — riscos aceitos que a publicação disparou
 

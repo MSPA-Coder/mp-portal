@@ -46,10 +46,6 @@ padrão operacional dos outros aplicativos: Django, `sharedauth`, Compose, CI,
 - **Dados de contato reais.** Telefone e e-mail continuam mascarados com
   asteriscos, por decisão registrada (achado L16): publicar contato falso é
   pior que não publicar.
-- **Timer do expurgo.** `manage.py expurgar_contatos` ainda roda só à mão; sem
-  um timer no host, o prazo de retenção do aviso de privacidade não se cumpre
-  sozinho. Este e os outros pendentes estão em
-  [`docs/operacao.md`](docs/operacao.md).
 
 ## Rodar localmente
 
@@ -112,8 +108,8 @@ docker compose run --rm web python manage.py expurgar_contatos
 ```
 
 Apaga o que passou de `CONTATO_RETENCAO_DIAS` (730 por padrão), preservando o
-que foi marcado como convertido em cliente. Ainda **não** roda sozinho — ver
-[`docs/operacao.md`](docs/operacao.md).
+que foi marcado como convertido em cliente. Em produção, roda sozinho uma vez
+por dia, pelo `expurgo-contatos.timer` do repositório `manutencao`.
 
 ## Documentação
 
