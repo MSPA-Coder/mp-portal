@@ -14,9 +14,9 @@ O site e o sistema da **MP Soluções Corporativas**, numa aplicação só.
   separada do site (ver `docs/adr/0005-area-logada-com-casca-propria.md`). É a
   área que vai crescer.
 
-É o repositório previsto pela **fase F7** do `LEVANTAMENTO_2026-09.md`
-(repositório `manutencao`), no padrão da frota: Django, `sharedauth`, Compose,
-CI, `/health`, `deploy.sh`, backup e vigia.
+Está em produção em `mp-solucoes.duckdns.org`, num VPS dedicado, com o mesmo
+padrão operacional dos outros aplicativos: Django, `sharedauth`, Compose, CI,
+`/health`, `deploy.sh`, backup e vigia.
 
 ## Rotas
 
@@ -46,12 +46,10 @@ CI, `/health`, `deploy.sh`, backup e vigia.
 - **Dados de contato reais.** Telefone e e-mail continuam mascarados com
   asteriscos, por decisão registrada (achado L16): publicar contato falso é
   pior que não publicar.
-- **Timer do expurgo.** O portal **está no ar** em `mp-solucoes.duckdns.org`
-  desde 10/09/2026 (a virada substituiu o site estático). O que ficou pendente
-  da publicação, e agora é o primeiro item, é automatizar
-  `manage.py expurgar_contatos` no host — sem ele, o prazo de retenção do aviso
-  de privacidade é promessa que ninguém cumpre. Este e os outros pendentes
-  estão em [`docs/operacao.md`](docs/operacao.md).
+- **Timer do expurgo.** `manage.py expurgar_contatos` ainda roda só à mão; sem
+  um timer no host, o prazo de retenção do aviso de privacidade não se cumpre
+  sozinho. Este e os outros pendentes estão em
+  [`docs/operacao.md`](docs/operacao.md).
 
 ## Rodar localmente
 
@@ -114,14 +112,15 @@ docker compose run --rm web python manage.py expurgar_contatos
 ```
 
 Apaga o que passou de `CONTATO_RETENCAO_DIAS` (730 por padrão), preservando o
-que foi marcado como convertido em cliente. Ainda **não** roda sozinho: o timer
-entra junto com a publicação.
+que foi marcado como convertido em cliente. Ainda **não** roda sozinho — ver
+[`docs/operacao.md`](docs/operacao.md).
 
 ## Documentação
 
 - [`AGENTS.md`](AGENTS.md) — invariantes e como trabalhar neste repositório.
-- [`docs/operacao.md`](docs/operacao.md) — o que falta para publicar, e o que a
-  publicação aciona.
-- [`docs/adr/`](docs/adr) — as quatro decisões que custam caro para reverter,
-  incluindo a incorporação do site (0003), a reversão que ela provocou (0001) e
-  o módulo de tarefas ser daqui e não de fora (0004).
+- [`docs/operacao.md`](docs/operacao.md) — como o portal roda em produção e o
+  que ficou aberto.
+- [`docs/adr/`](docs/adr) — as cinco decisões que custam caro para reverter: a
+  incorporação do site (0003), a reversão que ela provocou (0001), o cliente
+  adiado até existir módulo (0002), o módulo de tarefas ser daqui e não de fora
+  (0004) e a casca própria do painel (0005).
