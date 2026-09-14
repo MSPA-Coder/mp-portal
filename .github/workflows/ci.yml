@@ -37,23 +37,32 @@ jobs:
             -subj "/CN=MpPortal CI Local CA"
           rm -f /tmp/local-root-ca.key
       - name: Criar segredos efêmeros de CI
-        # O `chmod 0644` na senha do PostgreSQL não é descuido, e o `umask 077`
-        # continua valendo para a chave do Django.
+        # O `chmod 0644` nos DOIS segredos não é descuido.
         #
         # Um segredo de arquivo do Compose é montado preservando dono e modo do
         # host -- `uid`, `gid` e `mode` na sintaxe longa são ignorados fora do
-        # Swarm, e o próprio Compose avisa isso. O contêiner do PostgreSQL roda
-        # como `user: "postgres"` (uid 70) e precisa LER esse arquivo para
-        # inicializar; com 0600 pertencendo ao runner (uid 1001), ele morre no
-        # arranque com "Permission denied" e o serviço que depende dele nunca
-        # sobe. O valor aqui é uma constante pública deste arquivo e não protege
-        # nada.
+        # Swarm, e o próprio Compose avisa isso. Nenhum dos dois contêineres
+        # roda como root, então um arquivo 0600 do runner (uid 1001) é ilegível
+        # para ambos:
+        #
+        #   - o PostgreSQL roda como `user: "postgres"` (uid 70) e precisa LER a
+        #     senha para inicializar;
+        #   - a aplicação roda como `app` (uid 999) e precisa LER a chave do
+        #     Django para subir.
+        #
+        # Só o primeiro caso tinha sido tratado, e o segundo derrubou o passo
+        # "Aplicar migracoes com a imagem servida" -- a CI do `main` ficou
+        # vermelha a partir de 10/09/2026 com `PermissionError:
+        # /run/secrets/django_secret_key`, e seguiu assim por vários commits.
+        #
+        # Os valores aqui são constantes públicas deste arquivo e não protegem
+        # nada; o `umask 077` fica porque vale para o diretório.
         run: |
           umask 077
           mkdir -p .secrets
           printf '%s\n' 'ci-django-secret-key-not-for-production' > .secrets/django_secret_key
           printf '%s\n' 'ci-postgres-password-not-for-production' > .secrets/postgres_password
-          chmod 0644 .secrets/postgres_password
+          chmod 0644 .secrets/django_secret_key .secrets/postgres_password
       - name: Validar Compose
         run: docker compose config --quiet
       - name: Construir quality sem cache
@@ -133,6 +142,23 @@ jobs:
                 exit 1
               fi
             }
+            # Diretorio de estado tem de vir VAZIO na imagem, e nao apenas
+            # gravavel. Um volume nomeado novo e semeado com o conteudo do
+            # diretorio da imagem, entao um arquivo que o usuario do runtime nao
+            # consiga escrever viaja junto e mata o arranque -- e so em
+            # instalacao nova, porque o Docker so semeia volume vazio.
+            #
+            # Foi exatamente o que aconteceu: o `manage.py check` do build roda
+            # como root e deixava um `logs/portal.log` root na imagem. O
+            # `require_writable` abaixo passava, porque o DIRETORIO era
+            # gravavel; quem morria era o conteiner do segundo VPS.
+            require_estado_vazio() {
+              if [ -n "$(ls -A "$1" 2>/dev/null)" ]; then
+                echo "Diretorio de estado nao vem vazio na imagem: $1" >&2
+                ls -la "$1" >&2
+                exit 1
+              fi
+            }
 
             require_read_only /workspace
             require_read_only /workspace/portal
@@ -141,6 +167,8 @@ jobs:
             require_read_only /workspace/tarefas
             require_writable /workspace/logs
             require_writable /workspace/staticfiles
+            require_estado_vazio /workspace/logs
+            require_estado_vazio /workspace/staticfiles
             require_absent ruff
             require_absent pytest
             require_absent pip-audit
