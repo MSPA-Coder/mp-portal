@@ -133,6 +133,23 @@ jobs:
                 exit 1
               fi
             }
+            # Diretorio de estado tem de vir VAZIO na imagem, e nao apenas
+            # gravavel. Um volume nomeado novo e semeado com o conteudo do
+            # diretorio da imagem, entao um arquivo que o usuario do runtime nao
+            # consiga escrever viaja junto e mata o arranque -- e so em
+            # instalacao nova, porque o Docker so semeia volume vazio.
+            #
+            # Foi exatamente o que aconteceu: o `manage.py check` do build roda
+            # como root e deixava um `logs/portal.log` root na imagem. O
+            # `require_writable` abaixo passava, porque o DIRETORIO era
+            # gravavel; quem morria era o conteiner do segundo VPS.
+            require_estado_vazio() {
+              if [ -n "$(ls -A "$1" 2>/dev/null)" ]; then
+                echo "Diretorio de estado nao vem vazio na imagem: $1" >&2
+                ls -la "$1" >&2
+                exit 1
+              fi
+            }
 
             require_read_only /workspace
             require_read_only /workspace/portal
@@ -141,6 +158,8 @@ jobs:
             require_read_only /workspace/tarefas
             require_writable /workspace/logs
             require_writable /workspace/staticfiles
+            require_estado_vazio /workspace/logs
+            require_estado_vazio /workspace/staticfiles
             require_absent ruff
             require_absent pytest
             require_absent pip-audit

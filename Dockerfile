@@ -143,10 +143,23 @@ RUN chmod 755 manage.py
 # Tripwire de build: app faltando na arvore, erro de import ou de configuracao
 # de app quebra aqui, e nao no primeiro request em producao. `check` carrega
 # todos os apps e nao toca o banco. As credenciais sao de build.
+#
+# O `rm` no fim NAO e limpeza cosmetica. Este `check` roda como ROOT -- `USER
+# app` so vem adiante --, e configurar o logging do Django abre o handler de
+# arquivo, criando `/workspace/logs/portal.log` com dono root. Um volume
+# nomeado novo e semeado com o conteudo do diretorio da imagem, entao esse
+# arquivo root vai junto, e o contêiner, que roda como `app`, morre no arranque
+# com "PermissionError: /workspace/logs/portal.log".
+#
+# Nao aparece em servidor que ja rodava antes deste tripwire: o Docker so
+# semeia volume VAZIO, e o volume de la ja tinha um `portal.log` do dono certo.
+# O defeito so se manifesta em instalacao nova -- descoberto ao montar o
+# segundo VPS. Log de build nao tem o que fazer na imagem servida.
 RUN DJANGO_SECRET_KEY=build-only-nao-usada-em-execucao \
     POSTGRES_PASSWORD=build-only \
     PYTHONPATH=/workspace \
-    python manage.py check
+    python manage.py check \
+ && rm -f /workspace/logs/portal.log
 
 # Tira `pip` e `setuptools` da imagem SERVIDA.
 #
