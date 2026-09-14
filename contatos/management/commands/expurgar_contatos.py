@@ -4,10 +4,9 @@ Um aviso que promete apagar em 24 meses e um sistema que nunca apaga nada e
 pior do que nao ter aviso: a promessa e verificavel e esta escrita. Este
 comando e o que a torna verdadeira.
 
-Nao roda sozinho. E deliberado: enquanto o portal nao esta publicado, nao ha
-agendador; quando estiver, entra como um timer systemd ao lado dos que ja
-existem no repositorio `manutencao` -- e o dia de escreve-lo e o dia de decidir
-com que frequencia ele roda, o que e uma decisao operacional, nao de codigo.
+Quem o roda e o `expurgo-contatos.timer` do repositorio `manutencao`, uma vez
+por dia, no conteiner `web` em execucao. A frequencia e decisao operacional e
+mora la, nao aqui.
 """
 
 from __future__ import annotations
