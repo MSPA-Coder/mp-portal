@@ -36,6 +36,11 @@ quatro aplicativos e outro só com o portal.
 - Retenção: o `expurgo-contatos.timer` do repositório `manutencao` roda
   `manage.py expurgar_contatos` uma vez por dia no contêiner `web`, e falha
   alto se o portal estiver no servidor sem contêiner para rodá-lo.
+- Aviso de chegada: o `aviso-contatos.timer` do mesmo repositório roda
+  `manage.py contatos_novos` a cada 15 minutos e chama o `alerta.sh` quando há
+  solicitação nova. A mensagem leva só a contagem — nenhum dado pessoal vai
+  para o Telegram —, e quem recebe abre `/painel/atendimento/`. O canal é o
+  mesmo dos outros alertas do servidor.
 - GitHub: repositório privado, com alertas e correções de segurança do
   Dependabot ligados.
 
@@ -68,11 +73,3 @@ falso é pior que não publicar.
 `CONTATO_CANAL_TITULAR` aponta para um endereço no DuckDNS, que não recebe
 e-mail. A aplicação exige a variável e o aviso de privacidade a publica. Um
 alias encaminhado no domínio próprio resolve sem custo — depende de L19.
-
-### Médio — o aviso de chegada
-
-Quando uma solicitação entra, ela cai na caixa de entrada do responsável
-designado, mas ninguém é notificado: fica na lista até alguém abrir
-`/painel/atendimento/`. O caminho natural não é e-mail no contêiner
-(`read_only`, sem credencial): é um script no host, com timer, que consulta o
-portal e chama o `alerta.sh` quando houver solicitação nova.

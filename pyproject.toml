@@ -67,9 +67,9 @@ packages = [
 [tool.hatch.metadata]
 allow-direct-references = true
 
-# A secao [tool.ruff] e comum aos projetos irmaos; so `target-version` e
+# A secao [tool.ruff] e comum aos projetos irmaos; `target-version` e
 # `known-first-party` variam, porque dependem da versao de Python da imagem e do
-# layout de pacotes. Mantenha o resto em sincronia.
+# layout de pacotes, e as regras `S` sao so deste repositorio (abaixo).
 
 [tool.ruff]
 target-version = "py314"
@@ -87,6 +87,13 @@ select = [
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
     "SIM", # flake8-simplify
+    # flake8-bandit. Decidido em 15/09/2026 porque este e o unico repositorio sem
+    # CodeQL: privado no plano gratuito (L11), e justamente o que atende dado de
+    # terceiro. Cobre parte do que o CodeQL veria -- SQL montado com texto,
+    # `subprocess` com shell, `pickle`, `mark_safe` --, sem plano pago. Ao
+    # ligar, nada foi achado fora de `tests/`. Revisitar quando o repositorio
+    # ganhar CodeQL.
+    "S",
 ]
 ignore = [
     "E501",   # comprimento de linha: responsabilidade do formatador
@@ -112,6 +119,9 @@ known-first-party = [
 # schema vem da ferramenta, e reescreve-las a mao so afasta o arquivo do que
 # seria regerado.
 "*/migrations/*.py" = ["E501", "I001"]
+# `assert` e o idioma do pytest, e as senhas nos testes sao de contas criadas
+# no banco efemero da suite. As regras `S` valem para todo o resto.
+"tests/*.py" = ["S101", "S105", "S106"]
 
 [tool.ruff.format]
 quote-style = "double"
