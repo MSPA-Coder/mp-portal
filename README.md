@@ -40,9 +40,6 @@ padrão operacional dos outros aplicativos: Django, `sharedauth`, Compose, CI,
   emenda por onde ela entra já existe (o destino derivado do login); a forma e
   o gatilho estão em
   [`docs/adr/0002-multiusuario-adiado-ate-existir-modulo.md`](docs/adr/0002-multiusuario-adiado-ate-existir-modulo.md).
-- **Aviso de chegada.** Quando uma solicitação entra, nada avisa ninguém — ela
-  fica na lista até alguém abrir. O motivo e o caminho estão em
-  [`docs/operacao.md`](docs/operacao.md).
 - **Dados de contato reais.** Telefone e e-mail continuam mascarados com
   asteriscos, por decisão registrada (achado L16): publicar contato falso é
   pior que não publicar.
@@ -110,6 +107,18 @@ docker compose run --rm web python manage.py expurgar_contatos
 Apaga o que passou de `CONTATO_RETENCAO_DIAS` (730 por padrão), preservando o
 que foi marcado como convertido em cliente. Em produção, roda sozinho uma vez
 por dia, pelo `expurgo-contatos.timer` do repositório `manutencao`.
+
+## Aviso de chegada
+
+```bash
+docker compose run --rm web python manage.py contatos_novos --desde 2026-09-15T00:00:00+00:00
+```
+
+Conta as solicitações em situação Novo que chegaram depois do instante e
+devolve o instante do pedido mais recente, para a chamada seguinte. Imprime só
+isso: nome, e-mail e telefone nunca saem. Em produção, o
+`aviso-contatos.timer` do repositório `manutencao` roda o comando a cada 15
+minutos e manda um alerta quando chega pedido novo.
 
 ## Documentação
 
