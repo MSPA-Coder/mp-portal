@@ -52,6 +52,7 @@ Pré-requisito: Docker. Os segredos são arquivos, não variáveis:
 mkdir -p .secrets .certs
 printf '%s' 'chave-local-de-desenvolvimento' > .secrets/django_secret_key
 printf '%s' 'senha-local-postgres' > .secrets/postgres_password
+printf '%s' 'senha-local-papel-app' > .secrets/postgres_app_password
 openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 30 \
   -keyout /tmp/ca.key -out .certs/local-root-ca.crt -subj "/CN=MpPortal Local CA"
 ```

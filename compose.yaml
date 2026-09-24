@@ -13,12 +13,18 @@ x-app-build: &app-build
     secrets:
       - local_ca
 
+# O runtime conecta com o papel restrito (so DML), provisionado pelo servico
+# `db-provision`. O papel administrativo `POSTGRES_USER` -- superusuario, dono
+# das tabelas -- so aparece no `postgres`, no `db-provision`, no `migrate` e na
+# suite. `DB_EXIGIR_PAPEL_RESTRITO` faz a aplicacao recusar uma conexao
+# superusuaria (ver `core/papel_do_banco.py`).
 x-app-environment: &app-environment
   DJANGO_SETTINGS_MODULE: portal.settings
   POSTGRES_HOST: postgres
   POSTGRES_PORT: "5432"
-  POSTGRES_USER: ${POSTGRES_USER:-mp_portal}
-  POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+  POSTGRES_USER: ${POSTGRES_APP_USER:-mp_portal_app}
+  POSTGRES_PASSWORD_FILE: /run/secrets/postgres_app_password
+  DB_EXIGIR_PAPEL_RESTRITO: "1"
   POSTGRES_DB: ${POSTGRES_DB:-mp_portal}
   DJANGO_SECRET_KEY_FILE: /run/secrets/django_secret_key
   REQUIRE_FILE_SECRETS: "true"
@@ -26,6 +32,18 @@ x-app-environment: &app-environment
   PYTHONUNBUFFERED: "1"
 
 x-app-secrets: &app-secrets
+  secrets:
+    - django_secret_key
+    - postgres_app_password
+
+# Credencial administrativa: so `migrate` e `quality` (migration e DDL; a suite
+# cria e destroi o banco de teste).
+x-admin-environment: &admin-environment
+  POSTGRES_USER: ${POSTGRES_USER:-mp_portal}
+  POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+  DB_EXIGIR_PAPEL_RESTRITO: "0"
+
+x-admin-secrets: &admin-secrets
   secrets:
     - django_secret_key
     - postgres_password
@@ -88,21 +106,60 @@ services:
       timeout: 5s
       retries: 20
 
+  # Cria ou atualiza, de forma idempotente, o papel restrito da aplicacao. Roda
+  # a cada `up`, antes do `migrate`: concede acesso as tabelas existentes, e os
+  # privilegios padrao cobrem as que o `migrate` criar depois.
+  db-provision:
+    image: postgres:17-alpine
+    user: postgres
+    read_only: true
+    cpus: 0.5
+    mem_limit: 256m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:mode=1777,rw,nosuid,nodev,noexec,size=16m
+      - /var/run/postgresql:mode=1777,rw,nosuid,nodev,noexec,size=16m
+    pids_limit: 64
+    logging: *service-logging
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-mp_portal}
+      DB_ADMIN_USER: ${POSTGRES_USER:-mp_portal}
+      DB_ADMIN_PASSWORD_FILE: /run/secrets/postgres_password
+      DB_APP_USER: ${POSTGRES_APP_USER:-mp_portal_app}
+      DB_APP_PASSWORD_FILE: /run/secrets/postgres_app_password
+    secrets:
+      - postgres_password
+      - postgres_app_password
+    volumes:
+      - ./scripts/provision-db-runtime.sh:/usr/local/bin/provision-db-runtime.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["sh", "/usr/local/bin/provision-db-runtime.sh"]
+    restart: "no"
+
   # Etapa controlada de inicializacao: aplica migrations e materializa os assets
   # com hash no volume que o `web` consome. O `web` so sobe depois que esta
   # etapa termina com sucesso.
   migrate:
-    <<: [*app-build, *app-hardening, *app-secrets]
+    <<: [*app-build, *app-hardening, *admin-secrets]
     cpus: 1.0
     mem_limit: 512m
     environment:
-      <<: *app-environment
+      <<: [*admin-environment, *app-environment]
     pids_limit: 128
     stop_grace_period: 30s
     logging: *service-logging
     depends_on:
       postgres:
         condition: service_healthy
+      db-provision:
+        condition: service_completed_successfully
     # `--clear` e necessario: sem ele, um asset removido do codigo continua
     # sendo servido a partir do volume indefinidamente.
     command:
@@ -203,14 +260,14 @@ services:
       retries: 20
 
   quality:
-    <<: *app-secrets
+    <<: *admin-secrets
     build:
       context: .
       target: quality
       secrets:
         - local_ca
     environment:
-      <<: *app-environment
+      <<: [*admin-environment, *app-environment]
       # Sobrescreve o `postgres` da ancora. A suite fala com o banco efemero.
       POSTGRES_HOST: postgres-teste
     depends_on:
@@ -232,3 +289,7 @@ secrets:
     file: ${COMPOSE_SECRETS_DIRECTORY:-.secrets}/django_secret_key
   postgres_password:
     file: ${COMPOSE_SECRETS_DIRECTORY:-.secrets}/postgres_password
+  # Senha do papel restrito da aplicacao. Precisa ser legivel pelo uid 70 (o
+  # `db-provision` roda como `postgres`) e pelo usuario do `web`.
+  postgres_app_password:
+    file: ${COMPOSE_SECRETS_DIRECTORY:-.secrets}/postgres_app_password
