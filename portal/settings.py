@@ -133,7 +133,10 @@ DATABASES = {
 # A aplicacao nunca deve conectar como 'postgres': e o superusuario
 # administrativo do cluster, com privilegio sobre todo banco, nao so o proprio.
 # Transformar uma configuracao perigosa em erro de subida vale mais que um risco
-# silencioso -- mesma familia de validacao que `USE_HTTPS` tem abaixo.
+# silencioso -- mesma familia de validacao que `USE_HTTPS` tem abaixo. Isto so
+# pega o NOME: a garantia de verdade e `core.papel_do_banco`, que pergunta
+# `is_superuser` ao servidor em cada conexao, porque o POSTGRES_USER da imagem
+# nasce superusuario com qualquer nome.
 if DATABASES["default"]["USER"] == "postgres":
     raise RuntimeError(
         "POSTGRES_USER nao pode ser 'postgres': e o superusuario administrativo "

@@ -21,8 +21,12 @@ quatro aplicativos e outro só com o portal.
   servidor ao lado do GitHub.
 - Configuração em `.env.vps` (modelo em `.env.vps.example`), que é o nome que o
   `deploy.sh` lê; o `.env.docker.example` continua servindo de guia.
-- Segredos: `.secrets/postgres_password` legível pelo uid 70 do PostgreSQL
-  (`chmod 444`); `.secrets/django_secret_key` do uid 999 (`app` da imagem), em
+- Segredos: `.secrets/postgres_password` e `.secrets/postgres_app_password`
+  legíveis pelo uid 70 do PostgreSQL (`chmod 444`). O primeiro é do papel
+  administrativo (`POSTGRES_USER`, superusuário, dono das tabelas), que só o
+  banco, o `db-provision` e o `migrate` recebem; o segundo é do papel restrito
+  `mp_portal_app` (só DML), com que o `web` conecta — e a aplicação recusa
+  conexão superusuária (`core/papel_do_banco.py`). `.secrets/django_secret_key` do uid 999 (`app` da imagem), em
   modo `400`. Segredo `0600` do usuário `ubuntu` faz o contêiner morrer no
   arranque. `.certs/local-root-ca.crt` existe, vazio.
 - `ALLOWED_HOSTS` inclui `localhost,127.0.0.1` além do domínio: o healthcheck
