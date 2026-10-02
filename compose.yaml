@@ -80,10 +80,28 @@ x-postgres-hardening: &postgres-hardening
     - /var/run/postgresql:mode=1777,rw,noexec,nosuid,size=16m
   pids_limit: 256
 
+# A suite roda num conteiner descartavel, mas com a mesma fronteira de
+# privilegio do runtime. /tmp e logs sao os unicos destinos que precisam
+# continuar gravaveis durante os testes: o Django abre o handler de arquivo em
+# /workspace/logs e os caches do Ruff e do pytest apontam para /tmp.
+x-quality-hardening: &quality-hardening
+  user: "65532:65532"
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:mode=1777,rw,noexec,nosuid,size=64m
+    - /workspace/logs:mode=1777,rw,noexec,nosuid,size=16m
+  pids_limit: 256
+
 services:
   postgres:
     <<: *postgres-hardening
-    image: postgres:17-alpine
+    # Digest do indice multi-arquitetura (17.11). A tag ajuda a leitura humana,
+    # mas nao participa da resolucao: o Dependabot propoe a atualizacao.
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     restart: unless-stopped
     cpus: 1.0
     mem_limit: 512m
@@ -110,7 +128,7 @@ services:
   # a cada `up`, antes do `migrate`: concede acesso as tabelas existentes, e os
   # privilegios padrao cobrem as que o `migrate` criar depois.
   db-provision:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     user: postgres
     read_only: true
     cpus: 0.5
@@ -222,7 +240,7 @@ services:
   # onde mandaram, nao onde era seguro.
   postgres-teste:
     <<: *postgres-hardening
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     profiles: ["quality"]
     cpus: 1.0
     mem_limit: 512m
@@ -260,7 +278,7 @@ services:
       retries: 20
 
   quality:
-    <<: *admin-secrets
+    <<: [*quality-hardening, *admin-secrets]
     build:
       context: .
       target: quality
@@ -270,6 +288,12 @@ services:
       <<: [*admin-environment, *app-environment]
       # Sobrescreve o `postgres` da ancora. A suite fala com o banco efemero.
       POSTGRES_HOST: postgres-teste
+    # O `.dockerignore` mantem o `compose.yaml` fora da imagem (nenhum estagio
+    # do build o usa), mas a suite confere o endurecimento dos servicos no
+    # proprio arquivo que o VPS usa. Monta so ele, somente leitura -- nao o
+    # codigo, que continua vindo da imagem.
+    volumes:
+      - ./compose.yaml:/workspace/compose.yaml:ro
     depends_on:
       postgres-teste:
         condition: service_healthy
