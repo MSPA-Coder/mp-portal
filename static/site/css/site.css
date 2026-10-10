@@ -39,8 +39,9 @@ header{position:sticky;top:0;z-index:60;background:rgba(7,13,24,.88);backdrop-fi
 header.scrolled{box-shadow:0 12px 40px rgba(0,0,0,.45)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:var(--hh);gap:20px}
 .brand{display:flex;align-items:center;gap:12px}
+.brand-logo{width:48px;height:48px;object-fit:cover;object-position:center 40%;border-radius:8px}
 .brand-txt{line-height:1.1}
-.brand-txt strong{font-family:var(--disp);font-weight:900;font-size:19px;letter-spacing:.02em;display:block}
+.brand-txt strong{font-family:var(--disp);font-weight:900;font-size:19px;letter-spacing:.02em;display:block;color:#D9A74A}
 .brand-txt small{font-family:var(--mono);font-size:8.5px;letter-spacing:.24em;color:var(--mut);text-transform:uppercase}
 .nav-links{display:flex;gap:22px;font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--mut)}
 .nav-links a{position:relative;padding:6px 0;transition:color .25s}

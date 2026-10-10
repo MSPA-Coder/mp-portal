@@ -66,11 +66,10 @@ Plano gratuito não oferece ruleset, status check obrigatório nem CodeQL em
 repositório privado. Um defeito nesta `main` derruba o site e toca dado de
 terceiro. Reavaliar junto com o domínio ou o plano.
 
-### Médio — dados de contato ainda mascarados (L16)
+### Médio — e-mail comercial ainda mascarado (L16)
 
-Telefone, WhatsApp e e-mail comercial continuam com asteriscos em
-`templates/site/_rodape.html` e `templates/site/contato.html`: publicar contato
-falso é pior que não publicar.
+O e-mail comercial continua com asteriscos em `templates/site/_rodape.html`:
+publicar contato falso é pior que não publicar.
 
 ### Médio — canal do titular é placeholder
 

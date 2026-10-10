@@ -40,9 +40,9 @@ padrão operacional dos outros aplicativos: Django, `sharedauth`, Compose, CI,
   emenda por onde ela entra já existe (o destino derivado do login); a forma e
   o gatilho estão em
   [`docs/adr/0002-multiusuario-adiado-ate-existir-modulo.md`](docs/adr/0002-multiusuario-adiado-ate-existir-modulo.md).
-- **Dados de contato reais.** Telefone e e-mail continuam mascarados com
-  asteriscos, por decisão registrada (achado L16): publicar contato falso é
-  pior que não publicar.
+- **E-mail comercial.** O e-mail continua mascarado com asteriscos, por
+  decisão registrada (achado L16): publicar contato falso é pior que não
+  publicar.
 
 ## Rodar localmente
 
