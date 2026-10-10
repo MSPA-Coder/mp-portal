@@ -1,3 +1,4 @@
+{% load static %}
 {% comment %}
   Barra da área logada. Enxuta de propósito: as áreas do sistema, quem está
   logado e a saída. Sem o menu institucional, sem a barra "0800 24h", sem o
@@ -13,7 +14,7 @@
 <header class="pnl-barra">
   <div class="pnl-wrap">
     <a class="brand" href="/">
-      <svg viewBox="0 0 44 48" width="30" height="33" aria-hidden="true"><path d="M22 2 42 10v13c0 12-8.5 18.5-20 23C10.5 41.5 2 35 2 23V10Z" fill="#0E1B30" stroke="#31E3A2" stroke-width="2"/><text x="22" y="29" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="14" fill="#EDF2F9">MP</text></svg>
+      <img class="brand-logo" src="{% static 'site/img/logo-mp.webp' %}" width="40" height="40" alt="MP Soluções Corporativas">
       <span class="brand-txt"><strong>MP SOLUÇÕES</strong><small>Painel</small></span>
     </a>
 

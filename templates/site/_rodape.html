@@ -1,8 +1,7 @@
+{% load static %}
 {% comment %}
-  Rodapé de todas as páginas. Os dados de contato continuam mascarados com
-  asteriscos, por decisão do mantenedor (achado L16 do LEVANTAMENTO_2026-09.md):
-  o site é rascunho comercial e publicar telefone falso é pior que publicar
-  nenhum. Quando os dados reais existirem, é aqui e em site/contato.html.
+  Rodapé de todas as páginas. O telefone comercial publicado aqui e na página
+  de contato é a fonte de atendimento do site.
 
   A "Política de privacidade" DEIXOU de ser `href="#"`: agora aponta para o
   aviso de verdade, que a incorporação trouxe junto. É exigência da LGPD que ele
@@ -13,7 +12,7 @@
     <div class="ft-grid">
       <div class="ft-brand">
         <a class="brand" href="/">
-          <svg viewBox="0 0 44 48" width="34" height="38" aria-hidden="true"><path d="M22 2 42 10v13c0 12-8.5 18.5-20 23C10.5 41.5 2 35 2 23V10Z" fill="#0E1B30" stroke="#31E3A2" stroke-width="2"/><text x="22" y="29" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="14" fill="#EDF2F9">MP</text></svg>
+          <img class="brand-logo" src="{% static 'site/img/logo-mp.webp' %}" width="48" height="48" alt="MP Soluções Corporativas">
           <span class="brand-txt"><strong>MP SOLUÇÕES CORPORATIVAS</strong><small>Segurança • Tecnologia • Facilities</small></span>
         </a>
         <p>Transformando cidades e corporações por meio da tecnologia — segurança eletrônica, portaria e facilities integrados.</p>
@@ -21,7 +20,7 @@
       </div>
       <div><h5>Soluções</h5><a href="/solucoes#seg">Segurança eletrônica</a><a href="/solucoes#por">Portaria e recepção</a><a href="/solucoes#fac">Facilities</a><a href="/solucoes#int">Soluções integradas</a></div>
       <div><h5>Institucional</h5><a href="/metodo">Método de trabalho</a><a href="/segmentos">Segmentos</a><a href="/parceiros">Parceiros &amp; Clientes</a><a href="/empresa">A empresa</a><a href="/contato">Contato</a></div>
-      <div><h5>Atendimento</h5><ul class="ft-contact"><li class="mono">0800 ***-****</li><li class="mono">contato@********.com.br</li><li class="mono">Central de monitoramento: 24h</li></ul></div>
+      <div><h5>Atendimento</h5><ul class="ft-contact"><li class="mono">11 5585-3145</li><li class="mono">contato@********.com.br</li><li class="mono">Central de monitoramento: 24h</li></ul></div>
     </div>
     <div class="ft-bottom">
       <span>© <span id="year">2025</span> MP Soluções Corporativas — Segurança, tecnologia e facilities</span>
