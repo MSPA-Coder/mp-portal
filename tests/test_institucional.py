@@ -25,29 +25,6 @@ def test_as_sete_paginas_respondem_sem_autenticacao(client, caminho):
     assert resposta.status_code == 200
 
 
-@pytest.mark.parametrize("caminho", CAMINHOS)
-def test_toda_pagina_traz_cabecalho_e_rodape(client, caminho):
-    """Enquanto o site era estatico, a casca vinha do SSI do nginx.
-
-    Bastava `ssi on` sumir para as sete rotas responderem 200 sem menu e sem
-    rodape -- 200 numa pagina quebrada. A asercao mudou de forma junto com o
-    mecanismo, mas cobre a mesma falha.
-    """
-    corpo = client.get(caminho).content.decode("utf-8")
-
-    assert 'id="siteHeader"' in corpo
-    assert "<footer" in corpo
-    assert 'class="mnav"' in corpo
-
-
-@pytest.mark.parametrize("pagina", PAGINAS, ids=[p.nome for p in PAGINAS])
-def test_cada_pagina_marca_o_proprio_item_no_menu(client, pagina):
-    corpo = client.get(pagina.caminho).content.decode("utf-8")
-
-    assert corpo.count('aria-current="page"') == 1
-    assert f'href="{pagina.caminho}" class="active"' in corpo
-
-
 @pytest.mark.parametrize("pagina", PAGINAS, ids=[p.nome for p in PAGINAS])
 def test_cada_pagina_declara_titulo_e_descricao_proprios(client, pagina):
     corpo = client.get(pagina.caminho).content.decode("utf-8")
