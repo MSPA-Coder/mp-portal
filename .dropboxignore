@@ -30,8 +30,7 @@ __pycache__
 .coverage
 htmlcov
 
-# Artefatos de build/runtime.
-staticfiles
+# Artefatos de build.
 build
 dist
 *.egg-info

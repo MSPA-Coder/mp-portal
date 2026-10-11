@@ -10,60 +10,37 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mp-portal"
-version = "0.1.0"
-description = "Portal da MP Solucoes: recebimento de contato do site e area administrativa."
+version = "0.2.0"
+description = "Site institucional da MP Solucoes: gerador do site estatico para a hospedagem compartilhada."
 readme = "README.md"
 # Piso em 3.14 pelo mesmo motivo registrado no `sharedauth` e nos irmaos: e a
 # unica versao que alguma imagem executa. Declarar outra coisa seria afirmar
 # uma compatibilidade que nenhum job verifica.
 requires-python = ">=3.14"
 dependencies = [
+  # So o motor de template, em tempo de build: nada disto roda na hospedagem.
   "Django>=5.2,<7",
-  "psycopg[binary]>=3.2,<4",
-  "gunicorn>=26.0.0,<27",
-  "whitenoise>=6.12.0,<7",
-  # Cabecalhos de seguranca, CSP e leitura de segredo por arquivo,
-  # compartilhados com os outros aplicativos do mantenedor. A tag e fixada
-  # manualmente e nunca aponta para branch.
-  #
-  # **Sem o extra `[flask]`**, de proposito, exatamente como o ControleBancario:
-  # o nucleo do pacote e Python puro e nao tem dependencia nenhuma. Pedir o
-  # extra traria Flask, Flask-WTF e Flask-Limiter para dentro de uma imagem
-  # Django, que nao usa nada disso.
+  # Fonte da CSP e dos cabecalhos de seguranca que o gerador grava no
+  # `.htaccess`, a mesma dos aplicativos irmaos. A tag e fixada manualmente e
+  # nunca aponta para branch. Sem o extra `[flask]`: o nucleo e Python puro.
   "sharedauth @ git+https://github.com/MSPA-Coder/SharedAuth.git@v0.14.0",
 ]
 
 [project.optional-dependencies]
-# Instaladas apenas no estagio `quality` da imagem e no venv local, nunca no
-# `runtime`. Vem sobre as de execucao, nao no lugar delas: a suite exercita a
-# aplicacao real -- cabecalhos, CSRF, autorizacao e as restricoes do banco
-# passam pelo cliente de teste do proprio Django, sem duble.
+# Instaladas apenas no estagio `quality` da imagem e no venv local. A suite
+# gera o site de verdade e examina a saida, sem duble.
 dev = [
   "ruff>=0.12,<1",
   "pytest>=8.3,<10",
-  "pytest-django>=4.9,<5",
   # Auditoria de CVE das dependencias instaladas. Piso na minor atual, teto na
   # proxima major -- politica de faixa do mantenedor.
   "pip-audit>=2.10,<3",
-  # Os testes de configuracao carregam o compose e conferem a propriedade, em
-  # vez de procurar um trecho do texto (docs/TESTES.md, T4).
-  "pyyaml>=6,<7",
 ]
 
-# A distribuicao sao os proprios aplicativos Django, no layout plano que o
-# `startapp` produz. `portal` e o pacote de configuracao (settings, urls,
-# wsgi); os demais sao aplicativos de dominio. `manage.py`, `templates/` e
-# `static/` ficam de fora: sao usados a partir do diretorio de trabalho, nao
-# importados como modulo.
+# `templates/`, `static/` e `php/` ficam de fora: sao lidos a partir do
+# diretorio de trabalho pelo gerador, nao importados como modulo.
 [tool.hatch.build.targets.wheel]
-packages = [
-  "portal",
-  "core",
-  "contas",
-  "contatos",
-  "institucional",
-  "tarefas",
-]
+packages = ["institucional"]
 
 # `sharedauth` e referencia direta a um repositorio Git (nao a um indice PyPI):
 # Hatchling recusa isso por padrao e exige este opt-in explicito.
@@ -77,7 +54,7 @@ allow-direct-references = true
 [tool.ruff]
 target-version = "py314"
 line-length = 100
-extend-exclude = [".venv", "staticfiles", "media"]
+extend-exclude = [".venv", "dist"]
 
 [tool.ruff.lint]
 select = [
@@ -99,32 +76,15 @@ select = [
     "S",
 ]
 ignore = [
-    "E501",   # comprimento de linha: responsabilidade do formatador
-    "RUF012", # `Meta` de model Django usa listas de classe por design
+    "E501", # comprimento de linha: responsabilidade do formatador
 ]
-# Ao contrario do ControleBancario, este repositorio nasce sem a divida de
-# tabulacao herdada da conversao Flask -> Django: `W191` e `W293` continuam
-# ligados aqui, e devem continuar.
 
 [tool.ruff.lint.isort]
-known-first-party = [
-    "portal",
-    "core",
-    "contas",
-    "contatos",
-    "institucional",
-    "tarefas",
-    "tests",
-]
+known-first-party = ["institucional", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
-# Migracoes Django sao geradas: a ordem de import e as expressoes longas de
-# schema vem da ferramenta, e reescreve-las a mao so afasta o arquivo do que
-# seria regerado.
-"*/migrations/*.py" = ["E501", "I001"]
-# `assert` e o idioma do pytest, e as senhas nos testes sao de contas criadas
-# no banco efemero da suite. As regras `S` valem para todo o resto.
-"tests/*.py" = ["S101", "S105", "S106"]
+# `assert` e o idioma do pytest. As regras `S` valem para todo o resto.
+"tests/*.py" = ["S101"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -132,9 +92,7 @@ indent-style = "space"
 line-ending = "lf"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "portal.settings"
 testpaths = ["tests"]
 addopts = "-q --tb=short"
-# Sem isto o pytest coloca `tests/` no sys.path em vez da raiz, e os apps
-# Django nao sao importaveis dentro do conteiner.
+# Sem isto o pytest coloca `tests/` no sys.path em vez da raiz.
 pythonpath = ["."]

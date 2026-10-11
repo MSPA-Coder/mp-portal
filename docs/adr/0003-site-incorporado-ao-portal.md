@@ -1,5 +1,10 @@
 # ADR 0003 — O site institucional foi incorporado ao portal
 
+> **REVERTIDA EM 11/10/2026 (ADR 0006).** O site voltou a ser estático, gerado
+> por este repositório e servido pela hospedagem compartilhada. O texto abaixo
+> é o registro do que foi decidido e por quê.
+
+
 ## Decisão
 
 As sete páginas institucionais da MP Soluções Corporativas deixaram de ser um

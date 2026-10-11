@@ -13,8 +13,9 @@
         <h1 class="mid">Solicite uma avaliação sem compromisso.</h1>
         <p class="sub">Conte sua necessidade e receba um diagnóstico inicial com a combinação certa de segurança, portaria e facilities para a sua operação.</p>
         <div class="ch-list">
-          <div class="ch-row"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg><div><div class="k">Telefone / WhatsApp</div><div class="v">11 5585-3145</div></div></div>
-          <div class="ch-row"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><div><div class="k">E-mail comercial</div><div class="v">contato@********.com.br</div></div></div>
+          <div class="ch-row"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg><div><div class="k">Telefone</div><div class="v">{{ telefone }}</div></div></div>
+          <div class="ch-row"><svg viewBox="0 0 24 24"><path d="M4 20l1.4-4.2A8 8 0 1 1 8.3 18.7L4 20Z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1.3-1.2-1.8-1-.8.7c-.8-.4-1.6-1.2-2-2l.7-.8-1-1.8L9 9.5Z"/></svg><div><div class="k">WhatsApp</div><div class="v"><a href="{{ whatsapp_link }}" rel="noopener">{{ whatsapp }}</a></div></div></div>
+          <div class="ch-row"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><div><div class="k">E-mail</div><div class="v"><a href="mailto:{{ email }}">{{ email }}</a></div></div></div>
           <div class="ch-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><div><div class="k">Horários</div><div class="v">Comercial: seg–sex, 8h às 18h • Monitoramento e plantão: 24h</div></div></div>
           <div class="ch-row"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg><div><div class="k">Atendimento</div><div class="v">Consultores em campo e visitas técnicas agendadas</div></div></div>
         </div>
@@ -22,13 +23,9 @@
       <div class="form-card rv">
         <div id="formWrap">
           <h3>Solicite um orçamento</h3>
+          {% if com_formulario %}
           <p>Retornamos em até 1 dia útil com os próximos passos.</p>
-          {% if formulario.errors %}
-          <p class="rascunho"><strong>Confira os campos destacados:</strong> a
-          solicitação ainda não foi enviada.</p>
-          {% endif %}
-          <form id="ctaForm" method="post" action="/contato" novalidate>
-            {% csrf_token %}
+          <form id="ctaForm" method="post" action="/enviar.php">
             {% comment %}
               Campo-armadilha: invisível para quem enxerga, irresistível para
               preenchedor automático. Escondido por classe, nunca por atributo
@@ -39,37 +36,33 @@
               <input id="fSobrenome" name="sobrenome" tabindex="-1" autocomplete="off">
             </div>
             <div class="f-grid">
-              <div class="f-field"><label for="fNome">Nome*</label><input id="fNome" name="nome" required placeholder="Seu nome" value="{{ formulario.nome.value|default:'' }}">
-                {% for erro in formulario.nome.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
-              </div>
-              <div class="f-field"><label for="fEmp">Empresa / Condomínio</label><input id="fEmp" name="empresa" placeholder="Opcional" value="{{ formulario.empresa.value|default:'' }}">
-                {% for erro in formulario.empresa.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
-              </div>
-              <div class="f-field"><label for="fMail">E-mail*</label><input id="fMail" name="email" type="email" required placeholder="voce@empresa.com.br" value="{{ formulario.email.value|default:'' }}">
-                {% for erro in formulario.email.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
-              </div>
-              <div class="f-field"><label for="fTel">Telefone / WhatsApp*</label><input id="fTel" name="telefone" required placeholder="(11) 90000-0000" value="{{ formulario.telefone.value|default:'' }}">
-                {% for erro in formulario.telefone.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
-              </div>
+              <div class="f-field"><label for="fNome">Nome*</label><input id="fNome" name="nome" required minlength="2" maxlength="150" placeholder="Seu nome"></div>
+              <div class="f-field"><label for="fEmp">Empresa / Condomínio</label><input id="fEmp" name="empresa" maxlength="150" placeholder="Opcional"></div>
+              <div class="f-field"><label for="fMail">E-mail*</label><input id="fMail" name="email" type="email" required maxlength="254" placeholder="voce@empresa.com.br"></div>
+              <div class="f-field"><label for="fTel">Telefone / WhatsApp*</label><input id="fTel" name="telefone" required maxlength="40" placeholder="(11) 90000-0000"></div>
               <div class="f-field full"><label for="fSeg">Segmento</label>
-                <select id="fSeg" name="segmento">{% for valor, rotulo in segmentos %}<option value="{{ valor }}"{% if valor == formulario.segmento.value %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select>
+                <select id="fSeg" name="segmento">{% for valor, rotulo in segmentos %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select>
               </div>
               <div class="f-field full"><label>Soluções de interesse</label>
                 <div class="f-chips">
-                  {% for valor, rotulo in solucoes %}<label class="fchip"><input type="checkbox" name="solucoes" value="{{ valor }}"{% if valor in solucoes_marcadas %} checked{% endif %}><span>{{ rotulo }}</span></label>
+                  {% for valor, rotulo in solucoes %}<label class="fchip"><input type="checkbox" name="solucoes[]" value="{{ valor }}"><span>{{ rotulo }}</span></label>
                   {% endfor %}
                 </div>
               </div>
-              <div class="f-field full"><label for="fMsg">Mensagem</label><textarea id="fMsg" name="mensagem" placeholder="Descreva brevemente sua operação e necessidade…">{{ formulario.mensagem.value|default:'' }}</textarea>
-                {% for erro in formulario.mensagem.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
-              </div>
+              <div class="f-field full"><label for="fMsg">Mensagem</label><textarea id="fMsg" name="mensagem" maxlength="2000" placeholder="Descreva brevemente sua operação e necessidade…"></textarea></div>
               <div class="f-field full f-consent">
-                <label class="fchip"><input type="checkbox" name="consentimento" value="on"{% if formulario.consentimento.value %} checked{% endif %} required><span>Li e concordo com o <a href="{% url 'privacidade' %}">aviso de privacidade</a> e autorizo o uso destes dados para responder a esta solicitação.*</span></label>
-                {% for erro in formulario.consentimento.errors %}<span class="f-erro">{{ erro }}</span>{% endfor %}
+                <label class="fchip"><input type="checkbox" name="consentimento" value="on" required><span>Li e concordo com o <a href="/privacidade">aviso de privacidade</a> e autorizo o uso destes dados para responder a esta solicitação.*</span></label>
               </div>
             </div>
             <button type="submit" class="btn btn-acc">Enviar solicitação →</button>
           </form>
+          {% else %}
+          <p>Fale direto com a nossa equipe comercial pelo canal que preferir. Respondemos em até 1 dia útil.</p>
+          <div class="f-canais">
+            <a class="btn btn-acc" href="{{ whatsapp_link }}" rel="noopener">Chamar no WhatsApp</a>
+            <a class="btn btn-ghost" href="mailto:{{ email }}">Enviar um e-mail</a>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>

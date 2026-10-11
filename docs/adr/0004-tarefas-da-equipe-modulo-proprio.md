@@ -1,5 +1,9 @@
 # ADR 0004 — Tarefas da equipe como módulo do portal, e não ferramenta de fora
 
+> **SEM EFEITO desde 11/10/2026 (ADR 0006).** O quadro de tarefas deixou de ser
+> usado e o módulo foi removido. O texto abaixo fica como registro.
+
+
 **Data:** 08/09/2026
 
 ## Contexto

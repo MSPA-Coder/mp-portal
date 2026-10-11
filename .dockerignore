@@ -1,6 +1,6 @@
 # Com `COPY . .` no Dockerfile, esta e a lista unica do que fica FORA da
-# imagem. O estagio `builder` ainda precisa de pyproject.toml, uv.lock e
-# README.md; o `quality` precisa de tests/ -- por isso nenhum deles entra aqui.
+# imagem. O build precisa de pyproject.toml, uv.lock e README.md; a suite precisa
+# de tests/, templates/, static/ e php/ -- por isso nenhum deles entra aqui.
 
 .git
 .gitattributes
@@ -25,7 +25,7 @@ __pycache__
 *.crt
 backups
 logs
-staticfiles
+dist
 htmlcov
 .coverage
 .pytest_cache
@@ -37,4 +37,3 @@ docs
 AGENTS.md
 Dockerfile
 compose.yaml
-compose.dev.yaml

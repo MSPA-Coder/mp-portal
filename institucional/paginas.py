@@ -1,15 +1,13 @@
-"""As sete paginas institucionais, e o que cada uma declara.
+"""As paginas do site, e o que cada uma declara.
 
 FONTE UNICA. O `<head>` monta titulo, descricao e Open Graph daqui; o menu
 marca o item ativo daqui; o `sitemap.xml` lista estas rotas e nao outras. Antes
-da incorporacao ao portal, os mesmos dados viviam em tres lugares -- o `<head>`
-de cada arquivo, o `map` do nginx e o sitemap escrito a mao -- e divergir era
-questao de tempo.
+os mesmos dados viviam em tres lugares -- o `<head>` de cada arquivo, o `map`
+do nginx e o sitemap escrito a mao -- e divergir era questao de tempo.
 
-O conteudo de cada pagina continua em `templates/site/`, migrado byte a byte do
-repositorio `MpSolucoes` (fase F7, 08/09/2026). O DOMINIO nao aparece aqui nem
-em lugar nenhum: `canonical`, `og:url` e o sitemap saem do proprio request, que
-e a propriedade que a fase F5 conquistou e a incorporacao preserva.
+O conteudo de cada pagina fica em `templates/site/`. O DOMINIO nao aparece aqui
+nem em lugar nenhum: o gerador o recebe como parametro (`--dominio`) e dele
+saem `canonical`, `og:url`, o sitemap e os enderecos de e-mail.
 """
 
 from __future__ import annotations
@@ -30,10 +28,17 @@ class Pagina:
     rotulo_no_menu: str
     imagem: str | None = None
     imagem_alt: str | None = None
+    #: Falso na confirmacao de envio: sai do sitemap e leva `noindex`.
+    indexavel: bool = True
 
     @property
     def caminho(self) -> str:
         return f"/{self.rota}" if self.rota else "/"
+
+    @property
+    def arquivo(self) -> str:
+        """Nome do arquivo gerado: `/solucoes` vira `solucoes.html`."""
+        return f"{self.rota}.html" if self.rota else "index.html"
 
 
 #: A ordem desta lista e a ordem do menu e a do sitemap.
@@ -117,5 +122,68 @@ PAGINAS: tuple[Pagina, ...] = (
     ),
 )
 
+#: Paginas de apoio: fora do menu. A de privacidade e publica e indexavel; a de
+#: confirmacao e para onde o `enviar.php` devolve o visitante.
+PAGINAS_DE_APOIO: tuple[Pagina, ...] = (
+    Pagina(
+        rota="privacidade",
+        nome="privacidade",
+        template="site/privacidade.html",
+        titulo="Aviso de privacidade — MP Soluções Corporativas",
+        descricao="Como a MP Soluções Corporativas trata os dados enviados pelo formulário de contato do site, nos termos da LGPD.",
+        classe_do_corpo="pg-privacidade",
+        rotulo_no_menu="Privacidade",
+    ),
+    Pagina(
+        rota="contato-enviado",
+        nome="contato_enviado",
+        template="site/contato_enviado.html",
+        titulo="Solicitação recebida — MP Soluções Corporativas",
+        descricao="Recebemos a sua solicitação de contato.",
+        classe_do_corpo="pg-contato",
+        rotulo_no_menu="Contato",
+        indexavel=False,
+    ),
+    # Molde do erro: o `enviar.php` troca o marcador `<!--MENSAGEM-->` pelo
+    # motivo e devolve a pagina. Fica publicada, mas fora do sitemap.
+    Pagina(
+        rota="contato-erro",
+        nome="contato_erro",
+        template="site/contato_erro.html",
+        titulo="Não foi possível enviar — MP Soluções Corporativas",
+        descricao="A solicitação de contato não foi enviada.",
+        classe_do_corpo="pg-contato",
+        rotulo_no_menu="Contato",
+        indexavel=False,
+    ),
+)
+
 #: Indice por nome, para o menu marcar o item ativo.
-POR_NOME: dict[str, Pagina] = {pagina.nome: pagina for pagina in PAGINAS}
+POR_NOME: dict[str, Pagina] = {pagina.nome: pagina for pagina in (*PAGINAS, *PAGINAS_DE_APOIO)}
+
+#: O que o visitante pode escolher no formulario. Os valores sao os que o
+#: `enviar.php` aceita; o rotulo e o texto exibido (e o que vai no e-mail).
+SEGMENTOS: tuple[tuple[str, str], ...] = (
+    ("condominios", "Condomínios"),
+    ("industrias", "Indústrias"),
+    ("empresas", "Empresas e escritórios"),
+    ("comercio", "Comércio e varejo"),
+    ("saude", "Saúde"),
+    ("educacao", "Educação"),
+    ("setor_publico", "Setor público"),
+    ("outro", "Outro"),
+)
+
+SOLUCOES: tuple[tuple[str, str], ...] = (
+    ("seguranca_eletronica", "Segurança eletrônica"),
+    ("portaria", "Portaria e recepção"),
+    ("facilities", "Facilities"),
+    ("integradas", "Soluções integradas"),
+)
+
+#: Canais de atendimento publicados no site. O e-mail leva o dominio, que vem
+#: do gerador (`contato@<dominio>`).
+TELEFONE = "11 5585-3145"
+WHATSAPP = "11 99580-7972"
+WHATSAPP_LINK = "https://wa.me/5511995807972"
+CAIXA_PUBLICA = "contato"
