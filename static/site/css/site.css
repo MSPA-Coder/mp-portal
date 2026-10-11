@@ -443,6 +443,27 @@ footer{background:#050A12;border-top:1px solid var(--line);padding:56px 0 0}
 .f-consent .fchip span{white-space:normal}
 .f-consent a{text-decoration:underline}
 
-/* O cabecalho troca "Solicitar orcamento" por "Sair" quando ha sessao. */
-.form-sair{margin:0}
-.form-sair .btn{cursor:pointer;font:inherit}
+/* ===================================================================
+   Paginas de texto (privacidade, confirmacao de envio, 404) e canais de
+   contato quando o formulario esta desligado.
+   =================================================================== */
+#page-privacidade,#page-contato-enviado,#page-contato-erro,#page-404{background:var(--paper);color:var(--ink-d)}
+.doc{max-width:760px;width:100%}
+.doc h1{margin-bottom:6px}
+.doc h2{font-family:var(--disp);font-size:19px;margin:30px 0 8px;color:var(--ink-d)}
+.doc p,.doc li{color:var(--mut-d);font-size:15px;line-height:1.65;max-width:68ch}
+.doc p{margin-top:10px}
+.doc ul{margin:10px 0 0 20px}
+.doc a{color:var(--acc-deep);text-decoration:underline}
+.doc a.btn{text-decoration:none;color:inherit}
+.doc .btn-acc{color:var(--ink-d)}
+.doc-versao{font-size:13.5px}
+.doc-acoes{margin-top:26px}
+.doc-tabela{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+.doc-tabela th,.doc-tabela td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line-d);color:var(--mut-d)}
+.doc-tabela th{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-d)}
+.doc-tabela td:first-child{color:var(--ink-d);font-weight:600;width:38%}
+.f-canais{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.ch-row .v a{color:inherit}
+.ch-row .v a:hover{color:var(--acc-deep)}
+.ft-contact a{display:inline;padding:0}

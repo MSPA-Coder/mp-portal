@@ -1,0 +1,25 @@
+{% extends "site/base.html" %}
+
+{% block conteudo %}
+<div id="routeTag">MP // CONTATO</div>
+
+<main>
+<div class="page sec-light active" id="page-contato-erro">
+  <section class="screen">
+    <div class="wrap">
+      <article class="doc">
+        <span class="sec-label">// CONTATO</span>
+        <h1 class="mid">Não foi possível enviar.</h1>
+        {% comment %}
+          O `enviar.php` troca o marcador pelo motivo (já com os caracteres
+          especiais escapados) antes de devolver a página.
+        {% endcomment %}
+        <p class="sub">{{ marcador_do_erro|safe }}</p>
+        <p class="doc-versao">Se preferir, fale direto conosco: {{ telefone }}, <a href="{{ whatsapp_link }}" rel="noopener">WhatsApp {{ whatsapp }}</a> ou <a href="mailto:{{ email }}">{{ email }}</a>.</p>
+        <p class="doc-acoes"><a class="btn btn-acc" href="/contato">Voltar ao formulário</a></p>
+      </article>
+    </div>
+  </section>
+</div>
+</main>
+{% endblock %}

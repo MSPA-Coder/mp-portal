@@ -1,17 +1,15 @@
 {% comment %}
-  Barra, cabeçalho e menu de todas as páginas — institucionais e autenticadas.
+  Barra, cabeçalho e menu de todas as páginas.
 
   Os itens saem de `institucional/paginas.py`, a mesma tabela que alimenta o
-  `<head>` e o `sitemap.xml`. Antes da incorporação, o estado "ativo" vinha de
-  uma variável SSI que o nginx derivava da URL; agora vem de `pagina_ativa`, que
-  a view informa. Continua sendo decidido no servidor, e não em JavaScript, para
-  que o `aria-current` esteja correto para quem chega com script desligado ou
-  por leitor de tela.
+  `<head>` e o `sitemap.xml`. O estado "ativo" vem de `pagina_ativa`, decidido
+  na geração e não em JavaScript, para que o `aria-current` esteja correto para
+  quem chega com script desligado ou por leitor de tela.
 {% endcomment %}
 {% load static %}
 <div class="utilbar">
   <div class="wrap">
-    <div class="ub-left">Central de atendimento 24h — <b>11 5585-3145</b></div>
+    <div class="ub-left">Central de atendimento 24h — <b>{{ telefone }}</b></div>
     <div class="ub-right"><span class="dot"></span> Monitoramento ativo <span id="utilClock">—</span></div>
   </div>
 </div>
@@ -22,37 +20,15 @@
       <img class="brand-logo" src="{% static 'site/img/logo-mp.webp' %}" width="48" height="48" alt="MP Soluções Corporativas">
       <span class="brand-txt"><strong>MP SOLUÇÕES CORPORATIVAS</strong><small>Segurança • Tecnologia • Facilities</small></span>
     </a>
-    {% comment %}
-      Para quem não entrou, o item é a porta: "Login". Para quem entrou, é uma
-      porta só — "Painel" —, e as áreas do sistema (Tarefas, Atendimento) ficam
-      na barra da casca logada, não aqui: desde a ADR 0005 as duas metades do
-      portal têm navegação própria. Mostrar "Login" a quem já está autenticado
-      sugere que a sessão caiu, e é a mesma razão pela qual o 403 do atendimento
-      não devolve ninguém à tela de login.
-    {% endcomment %}
     <nav class="nav-links" aria-label="Navegação principal">
       {% for p in paginas %}<a href="{{ p.caminho }}"{% if p.nome == pagina_ativa %} class="active" aria-current="page"{% endif %}>{{ p.rotulo_no_menu }}</a>
-      {% endfor %}{% if user.is_authenticated %}<a href="{% url 'tarefas_lista' %}">Painel</a>
-      {% else %}<a href="{% url 'login' %}"{% if pagina_ativa == "login" %} class="active" aria-current="page"{% endif %}>Login</a>
-      {% endif %}
+      {% endfor %}
     </nav>
-    {% if user.is_authenticated %}
-      <form method="post" action="{% url 'logout' %}" class="form-sair">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
-      </form>
-    {% else %}
-      <a href="/contato" class="btn btn-acc btn-sm">Solicitar orçamento</a>
-    {% endif %}
+    <a href="/contato" class="btn btn-acc btn-sm">Solicitar orçamento</a>
     <button class="burger" id="navToggle" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
 </header>
 <nav class="mnav" id="mobileNav" aria-label="Menu mobile">
   {% for p in paginas %}<a href="{{ p.caminho }}">{{ p.rotulo_no_menu }}</a>{% endfor %}
-  {% if user.is_authenticated %}
-    <a href="{% url 'tarefas_lista' %}">Painel</a>
-  {% else %}
-    <a href="{% url 'login' %}">Login</a>
-  {% endif %}
   <a href="/contato" class="btn btn-acc">Solicitar orçamento</a>
 </nav>

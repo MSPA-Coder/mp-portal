@@ -1,0 +1,67 @@
+{% extends "site/base.html" %}
+
+{% block conteudo %}
+<div id="routeTag">MP // PRIVACIDADE</div>
+
+<main>
+<div class="page sec-light active" id="page-privacidade">
+  <section class="screen">
+    <div class="wrap">
+      <article class="doc">
+        <span class="sec-label">// PRIVACIDADE</span>
+        <h1 class="mid">Aviso de privacidade</h1>
+        <p class="doc-versao">Versão 2.0, vigente desde 11/10/2026.</p>
+
+        <h2>Quem trata os dados</h2>
+        <p>A MP Soluções Corporativas é a controladora dos dados pessoais enviados pelo formulário de contato deste site, nos termos da Lei 13.709/2018 (LGPD). Este site não tem área de acesso restrito, cadastro nem cookies de rastreamento.</p>
+
+        <h2>Para que</h2>
+        <p>Responder à solicitação de contato ou de orçamento enviada pelo site e conduzir a tratativa comercial dela decorrente.</p>
+
+        <h2>Com que base legal</h2>
+        <p>Consentimento do titular (Lei 13.709/2018, art. 7º, inciso I): quem envia o formulário marca a caixa de concordância com este aviso.</p>
+
+        <h2>O que é recebido, e por quê</h2>
+        <table class="doc-tabela">
+          <thead><tr><th>Dado</th><th>Por que é recebido</th></tr></thead>
+          <tbody>
+            <tr><td>Nome</td><td>Identificar quem pediu contato e endereçar a resposta.</td></tr>
+            <tr><td>Empresa ou condomínio</td><td>Entender o contexto do pedido.</td></tr>
+            <tr><td>E-mail</td><td>Responder à solicitação.</td></tr>
+            <tr><td>Telefone ou WhatsApp</td><td>Responder pelo canal que costuma ser o mais rápido.</td></tr>
+            <tr><td>Segmento e soluções de interesse</td><td>Direcionar o atendimento à linha de solução adequada.</td></tr>
+            <tr><td>Mensagem</td><td>Texto livre que o próprio titular escreveu sobre a necessidade dele.</td></tr>
+            <tr><td>Concordância com este aviso, data e hora do envio e versão do aviso</td><td>Registrar que houve concordância expressa e a qual texto ela se refere.</td></tr>
+          </tbody>
+        </table>
+        <p>Não há banco de dados neste site: a solicitação segue por e-mail para a equipe comercial e fica na caixa de e-mail da empresa.</p>
+
+        <h2>Endereço de rede</h2>
+        <p>Para conter envio automatizado em massa, o endereço de rede de quem usa o formulário é transformado em um resumo criptográfico, que não permite recuperar o endereço original. Esse resumo fica guardado por até uma hora e é apagado em seguida.</p>
+
+        <h2>Com quem é compartilhado</h2>
+        <p>Os dados não são vendidos nem usados para publicidade. Para funcionar, o site depende de um provedor de hospedagem e de e-mail, a Hostinger, que atua como operadora: hospeda as páginas, transmite a mensagem e guarda a caixa de e-mail da empresa. Como em qualquer hospedagem, o provedor registra o endereço de rede de quem acessa o site, em registros técnicos de acesso.</p>
+
+        <h2>Por quanto tempo</h2>
+        <p>As solicitações ficam na caixa de e-mail da empresa pelo tempo necessário à tratativa e são apagadas em até 24 meses contados do envio, se não resultarem em contrato. Se a solicitação resultar em contrato, os dados passam a ser tratados no âmbito dessa relação contratual e seguem o prazo dela.</p>
+
+        <h2>Direitos do titular</h2>
+        <p>A qualquer momento, a pessoa a quem os dados se referem pode pedir:</p>
+        <ul>
+          <li>confirmação da existência de tratamento;</li>
+          <li>acesso aos dados;</li>
+          <li>correção de dado incompleto, inexato ou desatualizado;</li>
+          <li>anonimização, bloqueio ou eliminação de dado desnecessário ou excessivo;</li>
+          <li>eliminação dos dados tratados com base no consentimento;</li>
+          <li>informação sobre compartilhamento;</li>
+          <li>revogação do consentimento.</li>
+        </ul>
+
+        <h2>Como exercer esses direitos</h2>
+        <p>Escreva para <a href="mailto:{{ email }}">{{ email }}</a>. O pedido é atendido sem custo.</p>
+      </article>
+    </div>
+  </section>
+</div>
+</main>
+{% endblock %}

@@ -2,39 +2,37 @@
 <html lang="pt-BR">
 <head>
 {% comment %}
-  A casca de TODO o portal -- as sete páginas institucionais e as telas
-  autenticadas. Uma casca só é o motivo de o site ter sido incorporado: enquanto
-  eram dois projetos, cabeçalho, rodapé e menu existiam em duas linguagens de
-  template, e "Atendimento" no menu obrigava as duas cópias a serem idênticas
-  para sempre. Ver docs/adr/0003-site-incorporado-ao-portal.md.
+  A casca de todas as páginas do site. O gerador (institucional/gerador.py) a
+  renderiza uma vez por página e grava arquivos estáticos; nada disto roda no
+  servidor.
 
   `{% comment %}` e não `{# #}`: a forma com cerquilha só vale em uma linha.
 
   CSP: `default-src 'self'`, sem estilo nem script embutido. O único uso de
   `data:` é o SVG de ruído dentro do site.css, e é por isso que `img-src` abre
-  para `data:` -- ver core/security.py.
+  para `data:` -- a política sai de `sharedauth.security.montar_csp()` e é
+  gravada no `.htaccess` pelo gerador.
 {% endcomment %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block titulo %}{{ titulo|default:"MP Soluções Corporativas" }}{% endblock %}</title>
 <meta name="description" content="{% block descricao %}{{ descricao|default:"Segurança eletrônica, portaria e facilities integrados, com monitoramento 24h, controle de acesso e gestão operacional." }}{% endblock %}">
-{% block robots %}{% endblock %}
+{% if not indexavel %}<meta name="robots" content="noindex">{% endif %}
 
 {% comment %}
-  O domínio não está escrito em arquivo nenhum, e isso é deliberado: sai do
-  próprio request. Era a propriedade que o nginx dava ao site estático (fase
-  F5) e a incorporação preserva — trocar de domínio continua sendo zero edição
-  no repositório.
+  O domínio não está escrito em arquivo nenhum, e isso é deliberado: o gerador o
+  recebe como parâmetro (`url_base`). Trocar de domínio é gerar de novo, sem
+  editar o repositório.
 {% endcomment %}
-<link rel="canonical" href="{{ request.build_absolute_uri }}">
+<link rel="canonical" href="{{ url_base }}{{ caminho }}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MP Soluções Corporativas">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="{% block og_titulo %}{{ titulo|default:"MP Soluções Corporativas" }}{% endblock %}">
 <meta property="og:description" content="{% block og_descricao %}{{ descricao|default:"Segurança eletrônica, portaria e facilities integrados." }}{% endblock %}">
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:url" content="{{ url_base }}{{ caminho }}">
 {% if imagem %}
-<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static imagem %}">
+<meta property="og:image" content="{{ url_base }}{% static imagem %}">
 <meta property="og:image:width" content="1600">
 <meta property="og:image:height" content="1600">
 <meta property="og:image:alt" content="{{ imagem_alt }}">

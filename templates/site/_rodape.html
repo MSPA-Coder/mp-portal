@@ -1,11 +1,7 @@
 {% load static %}
 {% comment %}
-  Rodapé de todas as páginas. O telefone comercial publicado aqui e na página
-  de contato é a fonte de atendimento do site.
-
-  A "Política de privacidade" DEIXOU de ser `href="#"`: agora aponta para o
-  aviso de verdade, que a incorporação trouxe junto. É exigência da LGPD que ele
-  seja acessível, e um link morto não é acessível.
+  Rodapé de todas as páginas. Telefone, WhatsApp e e-mail publicados aqui e na
+  página de contato saem de `institucional/paginas.py` e do domínio da geração.
 {% endcomment %}
 <footer class="noise">
   <div class="wrap">
@@ -20,11 +16,11 @@
       </div>
       <div><h5>Soluções</h5><a href="/solucoes#seg">Segurança eletrônica</a><a href="/solucoes#por">Portaria e recepção</a><a href="/solucoes#fac">Facilities</a><a href="/solucoes#int">Soluções integradas</a></div>
       <div><h5>Institucional</h5><a href="/metodo">Método de trabalho</a><a href="/segmentos">Segmentos</a><a href="/parceiros">Parceiros &amp; Clientes</a><a href="/empresa">A empresa</a><a href="/contato">Contato</a></div>
-      <div><h5>Atendimento</h5><ul class="ft-contact"><li class="mono">11 5585-3145</li><li class="mono">contato@********.com.br</li><li class="mono">Central de monitoramento: 24h</li></ul></div>
+      <div><h5>Atendimento</h5><ul class="ft-contact"><li class="mono">{{ telefone }}</li><li class="mono"><a href="{{ whatsapp_link }}" rel="noopener">WhatsApp {{ whatsapp }}</a></li><li class="mono"><a href="mailto:{{ email }}">{{ email }}</a></li><li class="mono">Central de monitoramento: 24h</li></ul></div>
     </div>
     <div class="ft-bottom">
       <span>© <span id="year">2025</span> MP Soluções Corporativas — Segurança, tecnologia e facilities</span>
-      <span><a href="{% url 'privacidade' %}">Aviso de privacidade</a></span>
+      <span><a href="/privacidade">Aviso de privacidade</a></span>
     </div>
   </div>
 </footer>

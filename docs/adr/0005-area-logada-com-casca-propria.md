@@ -1,5 +1,9 @@
 # ADR 0005 — A área logada tem casca própria, e quem entra é um círculo de confiança
 
+> **SEM EFEITO desde 11/10/2026 (ADR 0006).** O painel deixou de existir com a
+> mudança para hospedagem estática. O texto abaixo fica como registro.
+
+
 > **10/09/2026.** Registra a diretriz nova do mantenedor: o portal deixa de ser
 > "site com um anexo interno" e passa a ter duas metades com aparência própria,
 > e o punhado de pessoas que entra (mantenedor + três) compartilha tudo lá

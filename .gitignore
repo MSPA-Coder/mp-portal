@@ -84,6 +84,5 @@ desktop.ini
 # Especifico do MpPortal
 # ---------------------------------------------------------------------------
 
-# Assets coletados por `collectstatic`: conteudo de runtime, servido a partir
-# de volume, nunca do repositorio.
-staticfiles/
+# Saida do gerador (`dist/site`): regera sozinha, e o que vai para a hospedagem.
+# (`dist/` ja esta no nucleo comum acima.)
