@@ -48,14 +48,19 @@ de e-mail que recebe** — vale um lembrete recorrente.
 
 ## DNS (registro.br)
 
-O DNS fica no registro.br (servidores `a.auto.dns.br` e `b.auto.dns.br`, DNSSEC
-ligado). Na zona:
+O site está no ar em `https://mp-solucoes.seg.br` desde 11/10/2026. O DNS fica no
+registro.br (servidores `a.auto.dns.br` e `b.auto.dns.br`, DNSSEC ligado), e a
+zona editada em **Modo avançado** (o painel só volta ao modo básico depois de 2
+horas da troca) tem:
 
-- `A` de `@` e de `www` apontando para o IP do servidor da hospedagem (hPanel →
-  Site → dados do servidor).
-- Registros de e-mail (`MX`, SPF, DKIM, DMARC): **ainda não**, ver abaixo.
+| Tipo | Nome | Valor |
+|---|---|---|
+| A | `mp-solucoes.seg.br` | `185.239.210.159` (IP do servidor na Hostinger) |
+| CNAME | `www.mp-solucoes.seg.br` | `mp-solucoes.seg.br` |
 
-Trocar o IP da hospedagem exige trocar os dois registros `A`.
+O certificado HTTPS é emitido pela Hostinger. Trocar o IP da hospedagem exige
+trocar o registro `A`. Registros de e-mail (`MX`, SPF, DKIM, DMARC): **ainda
+não**, ver abaixo.
 
 ## O que ficou aberto
 
