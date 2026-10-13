@@ -34,6 +34,9 @@ services:
   # também faz build sem cache e executa testes, auditorias e Trivy.
   quality:
     <<: [*build, *hardening]
+    environment:
+      HOME: /tmp
+      PIP_CACHE_DIR: /tmp/pip-cache
     tmpfs:
       - /tmp:mode=1777,rw,noexec,nosuid,size=64m
 
