@@ -7,8 +7,11 @@ x-build: &build
   # Nome fixo em vez do derivado do diretorio, para o nome da imagem nao mudar
   # conforme onde o repositorio foi clonado.
   image: mp-portal-quality:local
+  pull_policy: build
   build:
     context: .
+    pull: true
+    no_cache: true
     target: quality
     secrets:
       - local_ca
@@ -27,9 +30,8 @@ x-hardening: &hardening
 services:
   # Ruff e a suite:
   #   docker compose run --build --rm quality
-  # O `--build` e necessario: este servico nao monta o codigo do host, e
-  # `docker compose run` reutiliza a imagem existente sem reconstrui-la -- foi
-  # assim que uma suite ja passou em verde sobre o codigo anterior.
+  # `--build` reconstrói explicitamente com as tags base atuais. A CI semanal
+  # também faz build sem cache e executa testes, auditorias e Trivy.
   quality:
     <<: [*build, *hardening]
     tmpfs:

@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1.7
-# Base fixada por DIGEST do indice multi-arquitetura, e nao pela tag: a tag
-# `python:3.14-slim` e alvo movel, e a imagem que a CI varreu podia nascer de
-# uma base diferente da que roda depois. E o mesmo digest dos irmaos da frota.
-FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS base
+# A tag da série 3.15 acompanha correções de segurança. A CI semanal reconstrói
+# com `--pull` e testa o site com a imagem atualizada.
+FROM python:3.15-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -23,10 +22,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && python -m pip install --no-cache-dir --upgrade pip setuptools
 
-# Versao fixa: o instalador que garante reprodutibilidade nao pode ser ele
-# proprio uma variavel.
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install --upgrade "uv==0.12.10"
+    python -m pip install --no-cache-dir --upgrade uv
 
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH="/opt/venv/bin:${PATH}"
