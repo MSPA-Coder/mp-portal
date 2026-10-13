@@ -13,10 +13,8 @@ name = "mp-portal"
 version = "0.2.0"
 description = "Site institucional da MP Solucoes: gerador do site estatico para a hospedagem compartilhada."
 readme = "README.md"
-# Piso em 3.14 pelo mesmo motivo registrado no `sharedauth` e nos irmaos: e a
-# unica versao que alguma imagem executa. Declarar outra coisa seria afirmar
-# uma compatibilidade que nenhum job verifica.
-requires-python = ">=3.14"
+# Python 3.15 é a série padronizada nos venvs, imagens Docker e CI da frota.
+requires-python = ">=3.15"
 dependencies = [
   # So o motor de template, em tempo de build: nada disto roda na hospedagem.
   "Django>=5.2,<7",
@@ -52,7 +50,7 @@ allow-direct-references = true
 # layout de pacotes, e as regras `S` sao so deste repositorio (abaixo).
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py315"
 line-length = 100
 extend-exclude = [".venv", "dist"]
 

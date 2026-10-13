@@ -59,26 +59,43 @@ horas da troca) tem:
 | CNAME | `www.mp-solucoes.seg.br` | `mp-solucoes.seg.br` |
 
 O certificado HTTPS é emitido pela Hostinger. Trocar o IP da hospedagem exige
-trocar o registro `A`. Registros de e-mail (`MX`, SPF, DKIM, DMARC): **ainda
-não**, ver abaixo.
+trocar o registro `A`. Os registros de e-mail estão na seção seguinte.
+
+## E-mail do domínio
+
+Plano Starter Business Email (gratuito por 12 meses), contratado no hPanel. São
+nove caixas, todas separadas, sem apelidos: `luiz`, `marcelo`, `felipe`,
+`financeiro`, `contato`, `comercial`, `operacional`, `rh` e `licitacoes`,
+todas `@mp-solucoes.seg.br`. As senhas são definidas no hPanel por quem as usa.
+
+Registros adicionais da zona no registro.br:
+
+| Tipo | Nome | Valor |
+|---|---|---|
+| TXT | `@` | verificação de domínio da Hostinger |
+| MX | `@` | `5 mx1.hostinger.com` e `10 mx2.hostinger.com` |
+| TXT | `@` | `v=spf1 include:_spf.mail.hostinger.com ~all` |
+| TXT | `_dmarc` | `v=DMARC1; p=none` |
+| CNAME | `hostingermail-a/b/c._domainkey` | `hostingermail-a/b/c.dkim.mail.hostinger.com` |
+
+O formulário está ligado desde 11/10/2026: o site é gerado com
+`COM_FORMULARIO=1`, e o `../contato-config.php` aponta `destino` e `remetente`
+para `contato@`. Testado de ponta a ponta (chegada na caixa, Reply-To para o
+e-mail informado no formulário, resposta recebida). O arquivo foi enviado pela
+API de upload da Hostinger para a pasta acima do `public_html`; o deploy do
+`site.zip` só substitui o `public_html`, então ele sobrevive às publicações.
 
 ## O que ficou aberto
 
-- **E-mail do domínio.** Não contratado. Endereços desejados: `luiz`, `marcelo`,
-  `felipe`, `financeiro`, `contato`, `comercial`, `operacional`, `rh`,
-  `licitacoes`. O site já publica `contato@mp-solucoes.seg.br`, que **ainda não
-  existe**: quem escrever recebe devolução. Falta decidir com a Hostinger o
-  plano e a quantidade de caixas; depois: criar as caixas e apelidos, publicar
-  `MX`/SPF/DKIM/DMARC no registro.br, preencher o `contato-config.php`, gerar com
-  `COM_FORMULARIO=1` e testar envio e recebimento. O aviso de privacidade usa
-  `contato@` como canal do titular.
-- **Entregabilidade do formulário.** O `enviar.php` usa `mail()`. Sem SPF/DKIM do
-  domínio, as mensagens podem cair em spam; reavaliar (SMTP autenticado) depois
-  que o e-mail existir.
+- **Renovação do e-mail.** O e-mail do domínio roda no período gratuito de 12
+  meses do plano Starter Business Email (até 12/10/2027). Desligar a renovação
+  automática em hPanel > Cobrança, ou decidir o plano pago antes do vencimento.
+- **Retenção e DMARC.** A retenção de 24 meses é manual (ver acima) e o DMARC
+  está em `p=none`; endurecer depois de observar os relatórios.
 - **Endereço de rede no limite de envios.** O script usa `REMOTE_ADDR`. Se a
   hospedagem estiver atrás de proxy, todos os visitantes parecem o mesmo
   endereço e o teto de 10 envios por hora passa a valer para o site inteiro;
-  conferir quando o formulário entrar no ar.
+  ainda não conferido (o teste de 11/10 usou um endereço só).
 - **VPS antigo** (`mp-solucoes.duckdns.org`): a desativação é do mantenedor.
   Depois dela, remover o portal do repositório `manutencao` (`deploy.sh`, vigia,
   timers `expurgo-contatos` e `aviso-contatos`) e o projeto `mp_portal_vps` do

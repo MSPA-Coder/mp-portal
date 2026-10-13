@@ -89,8 +89,8 @@ de build. `sharedauth` vem por referência Git, fixada em tag, **sem o extra
 O lock se regenera em contêiner (não há `uv` no host):
 
 ```bash
-docker run --rm -v "${PWD}:/w" -w /w python:3.14-slim \
-  sh -c "apt-get update -qq && apt-get install -y -qq git && pip install -q uv==0.12.10 && uv lock"
+docker run --rm -v "${PWD}:/w" -w /w python:3.15-slim \
+  sh -c "apt-get update -qq && apt-get install -y -qq git && pip install -q --upgrade uv && uv lock"
 ```
 
 (No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1` e use o caminho
