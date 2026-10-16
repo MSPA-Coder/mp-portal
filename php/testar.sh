@@ -28,10 +28,14 @@ cat > /tmp/mensagem.txt
 FIM
 chmod +x /tmp/sendmail-falso.sh
 
-php -d sendmail_path=/tmp/sendmail-falso.sh -S 127.0.0.1:8099 -t "$RAIZ/public_html" >/tmp/servidor.log 2>&1 &
-SERVIDOR=$!
+iniciar_servidor() {
+    php -d sendmail_path=/tmp/sendmail-falso.sh -S 127.0.0.1:8099 -t "$RAIZ/public_html" >/tmp/servidor.log 2>&1 &
+    SERVIDOR=$!
+    sleep 1
+}
+
+iniciar_servidor
 trap 'kill $SERVIDOR 2>/dev/null || true' EXIT
-sleep 1
 
 URL=http://127.0.0.1:8099/enviar.php
 
@@ -109,5 +113,10 @@ esperar "429 " "$VALIDO" "limite por endereco devolve 429"
 # Sem configuracao, o formulario nao envia.
 rm "$RAIZ/contato-config.php"
 rm -rf "$RAIZ/contato-limites"
+# Teste a ausencia de configuracao num worker novo, sem estado de include ou
+# cache de caminhos do worker que ja leu o arquivo nos casos anteriores.
+kill "$SERVIDOR" 2>/dev/null || true
+wait "$SERVIDOR" 2>/dev/null || true
+iniciar_servidor
 esperar "503 " "$VALIDO" "sem configuracao devolve 503"
 echo "TUDO OK"
