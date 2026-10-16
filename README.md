@@ -8,6 +8,24 @@ compartilhada (Hostinger, `mp-solucoes.seg.br`) é a pasta `dist/site`, gerada
 a partir dos templates de `templates/site/` — ver
 `docs/adr/0006-site-estatico-na-hospedagem-compartilhada.md`.
 
+## Preparar o Compose em um clone novo
+
+O `compose.yaml` declara `.certs/local-root-ca.crt` como secret de build.
+Compose exige que o arquivo exista antes de executar os comandos abaixo. A CI
+cria um certificado autoassinado descartável de um dia com OpenSSL; para um
+clone local, gere o mesmo arquivo (não é um segredo de produção):
+
+```bash
+mkdir -p .certs
+openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 1 \
+  -keyout /tmp/local-root-ca.key \
+  -out .certs/local-root-ca.crt \
+  -subj "/CN=MpPortal Local CA"
+rm -f /tmp/local-root-ca.key
+```
+
+Repita a geração quando o certificado expirar. Mantenha `.certs/` fora do Git.
+
 ## Gerar o site
 
 O domínio é parâmetro e não está escrito em arquivo nenhum:
