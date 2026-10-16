@@ -72,6 +72,11 @@ jobs:
           chmod 777 "$RUNNER_TEMP/trivy-cache"
           docker save mp-portal-quality:local -o "$RUNNER_TEMP/imagem.tar"
           chmod 644 "$RUNNER_TEMP/imagem.tar"
+          # A imagem a analisar já está no tar. Liberar as camadas de build
+          # antes de baixar a base do Trivy evita esgotar o disco efêmero do
+          # runner sem pular a varredura.
+          docker image rm mp-portal-quality:local
+          docker builder prune --all --force
           docker compose -f .github/docker-compose.yml run --rm trivy \
             --cache-dir /tmp/trivy-cache \
             image --input /varredura/imagem.tar \
